@@ -1,0 +1,8 @@
+# VIP生成點配置
+time_wait: 60  # 每60秒生成一次
+max_spawn_amount: 3
+mobs:
+  villager:
+    health_multiplier: 0.2
+    damage_multiplier: 0.2
+    speed_multiplier: 0.2

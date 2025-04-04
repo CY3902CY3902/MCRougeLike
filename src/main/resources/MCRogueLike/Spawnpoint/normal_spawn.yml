@@ -1,0 +1,12 @@
+# 普通生成點配置
+time_wait: 30  # 每30秒生成一次
+max_spawn_amount: 10
+mobs:
+  zombie:
+    health_multiplier: 0.3
+    damage_multiplier: 0.3
+    speed_multiplier: 0.3
+  skeleton:
+    health_multiplier: 0.3
+    damage_multiplier: 0.3
+    speed_multiplier: 0.3 

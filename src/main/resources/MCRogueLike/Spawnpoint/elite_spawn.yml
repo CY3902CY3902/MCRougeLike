@@ -1,0 +1,9 @@
+# 精英生成點配置
+time_wait: 45  # 每45秒生成一次
+max_spawn_amount: 5
+mobs:
+  creeper:
+    health_multiplier: 0.5
+    damage_multiplier: 0.5
+    speed_multiplier: 0.5
+    is_boss: true 

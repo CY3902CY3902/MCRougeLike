@@ -1,0 +1,36 @@
+plugin: '&b&lMCRogueLike &f'
+plugin_enable: 'MCRogueLike 插件已啟用'
+plugin_disable: 'MCRogueLike 插件已停用'
+help_player:
+  - '&f------ &b&lMCRogueLike &f------'
+  - '&a指令: &e/mcrougelike'
+  - '&a子命令:'
+  - '&8 - reload &7重新載入此插件的所有設定檔'
+  - '&8 - gui &7打開GUI介面'
+  - '&8 - paste <檔案名> &7貼上結構'
+  - '&8 - room &7管理房間'
+  - '&8 - path &7管理路徑'
+no_permission: '&c你沒有權限使用此指定'
+unknown_command: '&c指令輸入錯誤，請使用/mcrougelike查詢'
+reload_error: '&c載入此插件的所有設定檔時出現錯誤'
+reload_success: '&a插件重新載入成功!'
+read_yml_error: '&cYML 文件配置錯誤! 檔案路徑: '
+world_not_found_message: '&c世界不存在，值:'
+read_lang_error: "&c文件配置錯誤，默認繁體中文"
+error: '&c發生錯誤'
+level_type:
+  survival: '生存'
+  annihilation: '剿滅'
+  defense: '防守'
+  sniper_mission: '狙殺'
+gui:
+  title: '&b&lMCRogueLike &f路徑選擇'
+  path_name: '&a路徑名稱'
+  path_difficulty: '&e難度'
+  path_description: '&f描述'
+player_only: '&c此指令只能由玩家執行'
+schem_file_not_found: '&c找不到結構文件: %filename%'
+schem_pasted: '&a已貼上結構: %filename%'
+
+
+

@@ -1,0 +1,15 @@
+name: "生存房間"
+type: "Survival"
+structure: "survival_structure"
+description: "生存房間"
+time_limit: 300  # 5分鐘
+baseScore: 100
+player_spawn: "0,64,0"  # 玩家出生點
+floor:
+  min: 0
+  max: 10
+spawn_points:
+  - name: "normal_spawn"
+    location: "0,64,0"  # 相對位置
+  - name: "normal_spawn"
+    location: "10,64,0"  # 相對位置 

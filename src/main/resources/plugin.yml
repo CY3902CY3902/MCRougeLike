@@ -1,0 +1,19 @@
+name: MCRogueLike
+version: '${project.version}'
+main: io.github.cy3902.mcroguelike.MCRogueLike
+api-version: 1.21
+commands:
+  mcrougelike:
+    description: Handles mcrougelike commands
+    permission: mcrougelike.use
+
+permissions:
+  mcroguelike.use:
+    description: Allows use of the mcrougelike command
+    default: op
+  mcroguelike.schem:
+    description: 允許使用結構貼上功能
+    default: op
+  mcroguelike.path:
+    description: 允許使用路徑管理功能
+    default: op

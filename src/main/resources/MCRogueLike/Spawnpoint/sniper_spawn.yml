@@ -1,0 +1,8 @@
+# 狙擊生成點配置
+time_wait: 40  # 每40秒生成一次
+max_spawn_amount: 8
+mobs:
+  skeleton:
+    health_multiplier: 0.4
+    damage_multiplier: 0.4
+    speed_multiplier: 0.4 

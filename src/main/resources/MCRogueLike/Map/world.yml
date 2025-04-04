@@ -1,0 +1,17 @@
+# 地圖基本設定
+structure_spawn_point: "0,64,0"  # 生成建物點
+structure_spawn_separation: "100"  # 結構物生成間隔
+
+# 遊戲規則設定
+game_rules:
+  mob_griefing: false      # 生物破壞方塊
+  do_daylight_cycle: false # 日夜循環
+  do_weather_cycle: false  # 天氣循環
+  keep_inventory: true     # 死亡不掉落
+  do_mob_spawning: false   # 生物生成
+  pvp: false              # PVP開關
+
+# 環境設定
+environment:
+  weather: "clear"         # 天氣狀態 (clear/rain/thunder)
+  allow_explosions: false  # 爆炸開關 

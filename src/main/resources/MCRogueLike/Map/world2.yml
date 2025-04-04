@@ -1,0 +1,17 @@
+# 地圖基本設定
+structure_spawn_point: "0,64,0"
+structure_spawn_separation: "100"
+
+# 遊戲規則設定
+game_rules:
+  mob_griefing: false
+  do_daylight_cycle: false
+  do_weather_cycle: false
+  keep_inventory: true
+  do_mob_spawning: false
+  pvp: false
+
+# 環境設定
+environment:
+  weather: "clear"
+  allow_explosions: false 
