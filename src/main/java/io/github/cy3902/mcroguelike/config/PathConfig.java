@@ -1,5 +1,6 @@
 package io.github.cy3902.mcroguelike.config;
 
+import io.github.cy3902.mcroguelike.abstracts.AbstractsMap;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +20,7 @@ public class PathConfig {
     private double specialNodeProbability;
     private List<String> roomNames;
     private List<String> bossRoomNames;
+    private String mapName;
 
     /**
      * 默認構造函數
@@ -35,6 +37,7 @@ public class PathConfig {
         this.specialNodeProbability = 0.2;
         this.roomNames = new ArrayList<>();
         this.bossRoomNames = new ArrayList<>();
+        this.mapName = "";
     }
 
     /**
@@ -50,11 +53,13 @@ public class PathConfig {
      * @param specialNodeProbability 特殊節點概率
      * @param roomNames 房間名稱列表
      * @param bossRoomNames Boss房間名稱列表
+     * @param mapName 地圖名稱
      */
     public PathConfig(String pathId, String name, String description, 
                      int minFloor, int maxFloor, int maxNodes, int maxBranches,
                      int maxHeight, double specialNodeProbability,
-                     List<String> roomNames, List<String> bossRoomNames) {
+                     List<String> roomNames, List<String> bossRoomNames,
+                     String mapName) {
         this.pathId = pathId;
         this.name = name;
         this.description = description;
@@ -66,6 +71,7 @@ public class PathConfig {
         this.specialNodeProbability = specialNodeProbability;
         this.roomNames = new ArrayList<>(roomNames);
         this.bossRoomNames = new ArrayList<>(bossRoomNames);
+        this.mapName = mapName;
     }
 
     public String getPathId() {
@@ -154,5 +160,21 @@ public class PathConfig {
 
     public void setBossRoomNames(List<String> bossRoomNames) {
         this.bossRoomNames = bossRoomNames;
+    }
+
+    /**
+     * 獲取地圖名稱
+     * @return 地圖名稱
+     */
+    public String getMapName() {
+        return mapName;
+    }
+
+    /**
+     * 設置地圖名稱
+     * @param mapName 地圖名稱
+     */
+    public void setMapName(String mapName) {
+        this.mapName = mapName;
     }
 } 

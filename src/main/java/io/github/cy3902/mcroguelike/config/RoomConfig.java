@@ -8,6 +8,7 @@ import java.util.Map;
  * 用於存儲房間的配置信息
  */
 public class RoomConfig {
+    private String roomId;
     private String name;
     private String type;
     private String structure;
@@ -24,6 +25,7 @@ public class RoomConfig {
      * 默認構造函數
      */
     public RoomConfig() {
+        this.roomId = "";
         this.name = "";
         this.type = "";
         this.structure = "";
@@ -40,10 +42,11 @@ public class RoomConfig {
     /**
      * 完整構造函數
      */
-    public RoomConfig(String name, String type, String structure, String description, 
+    public RoomConfig(String roomId, String name, String type, String structure, String description, 
                      int timeLimit, int baseScore, double earlyCompletionMultiplier, 
                      String playerSpawn, int minFloor, int maxFloor, 
                      List<Map<String, String>> spawnPoints) {
+        this.roomId = roomId;
         this.name = name;
         this.type = type;
         this.structure = structure;
@@ -58,6 +61,10 @@ public class RoomConfig {
     }
 
     // Getters
+    public String getRoomId() {
+        return roomId;
+    }
+
     public String getName() {
         return name;
     }
@@ -103,6 +110,10 @@ public class RoomConfig {
     }
 
     // Setters
+    public void setRoomId(String roomId) {
+        this.roomId = roomId;
+    }
+
     public void setName(String name) {
         this.name = name;
     }

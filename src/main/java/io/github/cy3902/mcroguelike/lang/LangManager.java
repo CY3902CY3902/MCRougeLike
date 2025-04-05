@@ -1,21 +1,21 @@
 package io.github.cy3902.mcroguelike.lang;
 
-import org.bukkit.plugin.Plugin;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import io.github.cy3902.mcroguelike.MCRogueLike;
 
 /**
  * 語言管理器
  * 用於管理多個語言
  */
 public class LangManager {
-    private final Plugin plugin;
+    private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
     private final Map<String, Lang> languages;
     private String defaultLanguage;
 
-    public LangManager(Plugin plugin, String defaultLanguage) {
-        this.plugin = plugin;
+    public LangManager( String defaultLanguage) {
         this.languages = new HashMap<>();
         this.defaultLanguage = defaultLanguage;
         loadLanguage(defaultLanguage);
@@ -27,7 +27,7 @@ public class LangManager {
      */
     public void loadLanguage(String language) {
         if (!languages.containsKey(language)) {
-            Lang lang = new Lang(plugin, language);
+            Lang lang = new Lang( language);
             lang.load();
             languages.put(language, lang);
         }

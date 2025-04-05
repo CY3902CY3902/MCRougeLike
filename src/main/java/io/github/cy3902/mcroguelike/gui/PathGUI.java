@@ -30,12 +30,13 @@ public class PathGUI {
     private final Map<Player, AbstractsNode> selectedNodes;
     private final Map<Player, Set<AbstractsNode>> availableNodes;
     private final Map<Player, Integer> currentPages;
-
+    private final MCRogueLike mcroguelike;
     public PathGUI(AbstractsPath path2) {
         this.path = (Path) path2;
         this.selectedNodes = new HashMap<>();
         this.availableNodes = new HashMap<>();
         this.currentPages = new HashMap<>();
+        this.mcroguelike = MCRogueLike.getInstance();
     }
 
     public void openGUI(Player player) {
@@ -298,14 +299,11 @@ public class PathGUI {
         }
 
         // 獲取地圖
-        List<AbstractsMap> maps = MCRogueLike.getMaps();
-        if (maps.isEmpty()) {
+        AbstractsMap map = path.getMap();
+        if (map == null) {
             player.sendMessage("§c沒有可用的地圖");
             return;
         }
-
-        // 獲取第一個地圖
-        AbstractsMap map = maps.get(0);
         
         // 獲取房間
         AbstractsRoom room = selectedNode.getRoom();

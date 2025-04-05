@@ -7,6 +7,7 @@ import io.github.cy3902.mcroguelike.abstracts.AbstractsPath;
 import io.github.cy3902.mcroguelike.abstracts.AbstractsRoom;
 import io.github.cy3902.mcroguelike.MCRogueLike;
 import io.github.cy3902.mcroguelike.files.PathFile;
+import io.github.cy3902.mcroguelike.abstracts.AbstractsMap;
 /**
  * Path類別擴展了AbstractsPath，用於生成具有指定節點數量和同階層分支限制的樹狀結構。
  */
@@ -26,12 +27,21 @@ public class Path extends AbstractsPath {
     /**
      * 建構子，初始化Path類別，使用設定文件中的參數
      *
-     * @param pathFile 路徑設定文件
+     * @param pathId 路徑ID
+     * @param name 路徑名稱
+     * @param map 地圖
+     * @param maxNodes 最大節點數
+     * @param maxBranches 最大分支數
+     * @param maxHeight 最大高度
+     * @param specialNodeProbability 特殊節點概率
+     * @param roomNames 房間名稱列表
+     * @param bossRoomNames Boss房間名稱列表
      */
-    public Path(String pathId, String name, int maxNodes, int maxBranches, int maxHeight, 
+    public Path(String pathId, String name, AbstractsMap map, int maxNodes, int maxBranches, int maxHeight, 
                 double specialNodeProbability, List<String> roomNames, List<String> bossRoomNames) {
         super(pathId, maxNodes, maxBranches);
         this.name = name;
+        this.map = map;
         this.maxNodes = maxNodes;
         this.maxBranches = maxBranches;
         this.maxHeight = maxHeight;
@@ -40,11 +50,6 @@ public class Path extends AbstractsPath {
         this.roomNames = new ArrayList<>(roomNames);
         this.bossRoomNames = new ArrayList<>(bossRoomNames);
         
-        // 如果没有房间名称，添加默认房间
-        if (this.roomNames.isEmpty()) {
-            mcRogueLike.info("No room names found in path file, adding default room", Level.WARNING);
-            this.roomNames.add("survival_room");
-        }
     }
 
 
@@ -317,6 +322,14 @@ public class Path extends AbstractsPath {
      */
     public List<String> getBossRoomNames() {
         return bossRoomNames;
+    }
+
+    /**
+     * 獲取地圖
+     * @return 地圖名稱
+     */
+    public AbstractsMap getMap() {
+        return map;
     }
 
 }

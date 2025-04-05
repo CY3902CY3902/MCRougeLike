@@ -1,19 +1,10 @@
 package io.github.cy3902.mcroguelike.abstracts;
 
 import io.github.cy3902.mcroguelike.MCRogueLike;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.Plugin;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.*;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.logging.Level;
 
 /**
@@ -21,19 +12,17 @@ import java.util.logging.Level;
  * 提供了初始化、讀取預設值、取得配置值和處理 YAML 配置段的方法。
  */
 public class FileProviderList<T extends FileProvider<?>> {
-    private final Plugin plugin;
+    private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
     private final String directory;
     private final String extension;
     private final Map<String, T> providers;
 
     /**
      * 構造函數
-     * @param plugin 插件實例
      * @param directory 目錄名稱
      * @param extension 文件擴展名
      */
-    public FileProviderList(Plugin plugin, String directory, String extension) {
-        this.plugin = plugin;
+    public FileProviderList(String directory, String extension) {
         this.directory = directory;
         this.extension = extension;
         this.providers = new HashMap<>();
@@ -73,7 +62,7 @@ public class FileProviderList<T extends FileProvider<?>> {
             try {
                 provider.reload();
             } catch (Exception e) {
-                plugin.getLogger().log(Level.SEVERE, "Error reloading file: " + provider.getFileName(), e);
+                mcroguelike.getLogger().log(Level.SEVERE, "Error reloading file: " + provider.getFileName(), e);
             }
         }
     }
@@ -88,7 +77,7 @@ public class FileProviderList<T extends FileProvider<?>> {
                 FileProvider<Object> p = (FileProvider<Object>) provider;
                 p.save(p.load());
             } catch (Exception e) {
-                plugin.getLogger().log(Level.SEVERE, "Error saving file: " + provider.getFileName(), e);
+                mcroguelike.getLogger().log(Level.SEVERE, "Error saving file: " + provider.getFileName(), e);
             }
         }
     }
@@ -106,7 +95,7 @@ public class FileProviderList<T extends FileProvider<?>> {
      * @return 目錄
      */
     public File getDirectory() {
-        File dir = new File(plugin.getDataFolder(), directory);
+        File dir = new File(mcroguelike.getDataFolder(), directory);
         if (!dir.exists()) {
             dir.mkdirs();
         }

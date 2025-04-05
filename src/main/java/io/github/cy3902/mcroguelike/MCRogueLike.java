@@ -36,10 +36,6 @@ public final class MCRogueLike extends JavaPlugin {
     private static Lang.LangType langType;
     private static AbstractsSQL sql;
     private static ConfigFile configFile;
-    private static MapFile mapFile;
-    private static PathFile pathFile;
-    private static RoomFile roomFile;
-    private static SpawnpointFile spawnpointFile;
 
     private final MsgUtils msgUtils = new MsgUtils(this);
 
@@ -74,7 +70,6 @@ public final class MCRogueLike extends JavaPlugin {
         sql = null;
         lang = null;
         configFile = null;
-        mapFile = null;
     }
 
     public void initEssential() throws IOException {
@@ -124,14 +119,18 @@ public final class MCRogueLike extends JavaPlugin {
         // Initialize configuration files
         
         configFile = new ConfigFile(this);
-        lang = new Lang(this, "Lang", langType + ".yml");
-        mapFile = new MapFile(this, "default");
-        pathFile = new PathFile(this, "default");
-        roomFile = new RoomFile(this, "default");
-        spawnpointFile = new SpawnpointFile(this, "default");
+        configFile.readDefault();
+
+        lang = new Lang("Lang", langType + ".yml");
+        lang.readDefault();
+
+        roomManager.reload();
+        mapManager.reload();
+        pathManager.reload();
+        spawnpointManager.reload();
         
         // Load and apply map rules
-        for (AbstractsMap map : mapManager.getMaps()) {
+        for (AbstractsMap map : mapManager.getMaps().values()) {
             map.applyMapRules();
         }
 
@@ -204,19 +203,4 @@ public final class MCRogueLike extends JavaPlugin {
         return msgUtils.msg(msg);
     }
 
-    public static List<AbstractsMap> getMaps() {
-        return getInstance().mapManager.getMaps();
-    }
-
-    public static List<AbstractsPath> getPaths() {
-        return getInstance().pathManager.getPaths();
-    }
-
-    public static AbstractSpawnpoint getSpawnPoint(String name) {
-        return getInstance().spawnpointManager.getSpawnpoint(name);
-    }
-
-    public static void addSpawnPoint(String name, AbstractSpawnpoint spawnpoint) {
-        getInstance().spawnpointManager.addSpawnpoint(name, spawnpoint);
-    }
 }

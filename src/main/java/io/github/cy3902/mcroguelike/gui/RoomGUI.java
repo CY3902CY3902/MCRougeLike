@@ -26,15 +26,15 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class RoomGUI {
-    private final MCRogueLike plugin;
+    private final MCRogueLike mcroguelike;
     private final File roomDir;
     private final Map<String, FileConfiguration> roomConfigs;
     private static final int ITEMS_PER_PAGE = 45; // 每頁顯示的物品數量
     private final Map<UUID, Integer> playerPages; // 玩家UUID -> 當前頁碼
 
     public RoomGUI() {
-        this.plugin = MCRogueLike.getInstance();
-        this.roomDir = new File(plugin.getDataFolder() + "/Room");
+        this.mcroguelike = MCRogueLike.getInstance();
+        this.roomDir = new File(mcroguelike.getDataFolder() + "/Room");
         this.roomConfigs = new HashMap<>();
         this.playerPages = new HashMap<>();
         loadConfigs();
@@ -70,7 +70,7 @@ public class RoomGUI {
             File file = new File(roomDir, roomId + ".yml");
             config.save(file);
         } catch (IOException e) {
-            plugin.getLogger().severe("無法保存房間配置 " + roomId + ": " + e.getMessage());
+            mcroguelike.getLogger().severe("無法保存房間配置 " + roomId + ": " + e.getMessage());
         }
     }
 
@@ -314,7 +314,7 @@ public class RoomGUI {
                 File file = new File(roomDir, entry.getKey() + ".yml");
                 entry.getValue().save(file);
             } catch (IOException e) {
-                plugin.getLogger().severe("無法保存房間配置 " + entry.getKey() + ": " + e.getMessage());
+                mcroguelike.getLogger().severe("無法保存房間配置 " + entry.getKey() + ": " + e.getMessage());
             }
         }
     }
@@ -367,10 +367,7 @@ public class RoomGUI {
         if (file.exists()) {
             file.delete();
         }
-        AbstractsRoom room = plugin.getRoomManager().getRoom(roomId);
-        if (room != null) {
-            plugin.getRoomManager().removeRoom(room);
-        }
+        mcroguelike.getRoomManager().removeRoom(roomId);
         roomConfigs.remove(roomId);
         reloadConfigs(); // 重新加載配置
     }
@@ -387,7 +384,7 @@ public class RoomGUI {
             File file = new File(roomDir, roomId + ".yml");
             config.save(file);
         } catch (IOException e) {
-            plugin.getLogger().severe("無法保存房間配置 " + roomId + ": " + e.getMessage());
+            mcroguelike.getLogger().severe("無法保存房間配置 " + roomId + ": " + e.getMessage());
         }
     }
 } 

@@ -4,6 +4,7 @@ max_nodes: 10                    # 最大節點數
 max_branches: 1                  # 每個節點最大分支數
 max_height: 5                    # 最大層級數
 special_node_probability: 0.3    # 特殊節點生成機率 (0.0-1.0)
+map_name: "linear_map"           # 地圖名稱
 
 # 層級名稱設定
 room_names:                     # 一般層級名稱

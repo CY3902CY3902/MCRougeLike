@@ -2,7 +2,6 @@ package io.github.cy3902.mcroguelike.config;
 
 import io.github.cy3902.mcroguelike.MCRogueLike;
 import io.github.cy3902.mcroguelike.abstracts.FileProvider;
-import io.github.cy3902.mcroguelike.config.Lang.LangType;
 import io.github.cy3902.mcroguelike.sql.MySQL;
 import io.github.cy3902.mcroguelike.sql.SQLite;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -13,7 +12,7 @@ import org.bukkit.plugin.Plugin;
  */
 public class ConfigFile extends FileProvider<YamlConfiguration> {
 
-    private final MCRogueLike mcroguelike;
+    private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
 
     public enum DatabaseType {
         sqlite, mysql
@@ -25,8 +24,7 @@ public class ConfigFile extends FileProvider<YamlConfiguration> {
      * @param plugin 插件實例
      */
     public ConfigFile(Plugin plugin) {
-        super(plugin, "config.yml", "");
-        this.mcroguelike = MCRogueLike.getInstance();
+        super("config.yml", "");
     }
 
     @Override
@@ -39,7 +37,7 @@ public class ConfigFile extends FileProvider<YamlConfiguration> {
         try {
             config.save(file);
         } catch (Exception e) {
-            plugin.getLogger().severe("Error saving config file: " + e.getMessage());
+            mcroguelike.getLogger().severe("Error saving config file: " + e.getMessage());
         }
     }
 
@@ -58,10 +56,10 @@ public class ConfigFile extends FileProvider<YamlConfiguration> {
 
         // 設置語言類型
         try {
-            mcroguelike.setLangType(Lang.LangType.valueOf(lang));
+            MCRogueLike.setLangType(Lang.LangType.valueOf(lang));
         } catch (IllegalArgumentException e) {
             // 如果語言無效，設置為默認語言 "zh_TW"
-            mcroguelike.setLangType(Lang.LangType.zh_TW);
+            MCRogueLike.setLangType(Lang.LangType.zh_TW);
         }
 
         // 設置數據庫類型
@@ -76,7 +74,7 @@ public class ConfigFile extends FileProvider<YamlConfiguration> {
         if (databaseType == DatabaseType.sqlite) {
             // 讀取 SQLite 配置參數
             String DATABASE_URL = yml.getString("file_path", "plugins/MCRogueLike/SQL/mcrougelike.db");
-            mcroguelike.setSql(new SQLite(DATABASE_URL));
+            MCRogueLike.setSql(new SQLite(DATABASE_URL));
         } else if (databaseType == DatabaseType.mysql) {
             // 讀取 MySQL 配置參數
             String host = yml.getString("database.mysql.host", "");
@@ -86,7 +84,7 @@ public class ConfigFile extends FileProvider<YamlConfiguration> {
             String password = yml.getString("database.mysql.password", "");
 
             // 創建 MySQL 實例並設置
-            mcroguelike.setSql(new MySQL(host, port, dbName, username, password));
+            MCRogueLike.setSql(new MySQL(host, port, dbName, username, password));
         }
     }
 }

@@ -4,6 +4,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 
+import io.github.cy3902.mcroguelike.MCRogueLike;
+
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
@@ -16,7 +18,7 @@ import java.util.logging.Level;
  * @param <T> 配置對象的類型
  */
 public abstract class FileProvider<T> {
-    protected final Plugin plugin;
+    protected final MCRogueLike mcroguelike = MCRogueLike.getInstance();
     protected final String fileName;
     protected final String directory;
     protected File file;
@@ -28,13 +30,12 @@ public abstract class FileProvider<T> {
      * @param fileName 文件名
      * @param directory 目錄名
      */
-    public FileProvider(Plugin plugin, String fileName, String directory) {
-        this.plugin = plugin;
+    public FileProvider(String fileName, String directory) {
         this.fileName = fileName;
         this.directory = directory;
-        this.file = new File(plugin.getDataFolder(), directory + "/" + fileName);
+        this.file = new File(mcroguelike.getDataFolder(), directory + "/" + fileName);
         if (!this.file.exists()) {
-            plugin.saveResource(directory + "/" + fileName, false);
+            mcroguelike.saveResource(directory + "/" + fileName, false);
         }
         this.yml = YamlConfiguration.loadConfiguration(file);
     }
@@ -64,7 +65,7 @@ public abstract class FileProvider<T> {
      */
     public void readDefault() {
         if (!file.exists()) {
-            plugin.saveResource(directory + "/" + fileName, false);
+            mcroguelike.saveResource(directory + "/" + fileName, false);
         }
     }
 
@@ -97,7 +98,7 @@ public abstract class FileProvider<T> {
      * @return 插件實例
      */
     public Plugin getPlugin() {
-        return this.plugin;
+        return this.mcroguelike;
     }
 
     /**
@@ -153,9 +154,9 @@ public abstract class FileProvider<T> {
     protected void logError(String messageKey, String path, Object defaultValue) {
         String message = getLangMessage(messageKey);
         if (defaultValue != null) {
-            plugin.getLogger().log(Level.SEVERE, message + path + ", using default value: " + defaultValue);
+            mcroguelike.getLogger().log(Level.SEVERE, message + path + ", using default value: " + defaultValue);
         } else {
-            plugin.getLogger().log(Level.SEVERE, message + path);
+            mcroguelike.getLogger().log(Level.SEVERE, message + path);
         }
     }
 
@@ -168,8 +169,8 @@ public abstract class FileProvider<T> {
         // 嘗試從插件獲取語言消息
         try {
             // 假設插件有一個getLang()方法返回Lang對象，該對象有getMessage方法
-            return plugin.getClass().getMethod("getLang").invoke(plugin).getClass()
-                    .getMethod("getMessage", String.class).invoke(plugin.getClass().getMethod("getLang").invoke(plugin), key).toString();
+            return mcroguelike.getClass().getMethod("getLang").invoke(mcroguelike).getClass()
+                    .getMethod("getMessage", String.class).invoke(mcroguelike.getClass().getMethod("getLang").invoke(mcroguelike), key).toString();
         } catch (Exception e) {
             // 如果無法獲取，返回鍵名
             return key + ": ";

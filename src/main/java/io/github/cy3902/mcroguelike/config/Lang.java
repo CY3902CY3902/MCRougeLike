@@ -17,7 +17,7 @@ import java.util.HashMap;
  */
 public class Lang extends FileProvider<Map<String, String>> {
 
-    private final MCRogueLike mcroguelike;
+    private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
     private Map<String, String> messages;
 
     /**
@@ -34,9 +34,8 @@ public class Lang extends FileProvider<Map<String, String>> {
      * @param internalPath 配置文件的內部路徑
      * @param fileName 配置文件的名稱
      */
-    public Lang(Plugin plugin, String internalPath, String fileName) {
-        super(plugin, fileName, internalPath);
-        this.mcroguelike = MCRogueLike.getInstance();
+    public Lang(String internalPath, String fileName) {
+        super(fileName, internalPath);
         this.messages = new HashMap<>();
     }
 
@@ -55,7 +54,7 @@ public class Lang extends FileProvider<Map<String, String>> {
         try {
             yml.save(file);
         } catch (Exception e) {
-            plugin.getLogger().severe("Error saving language file: " + e.getMessage());
+            mcroguelike.getLogger().severe("Error saving language file: " + e.getMessage());
         }
     }
 

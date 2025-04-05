@@ -16,6 +16,7 @@ public abstract class AbstractsPath {
     protected final int totalNodes;
     protected final int maxBranches;
     protected final Map<Integer, List<AbstractsNode>> levelNodes;
+    protected AbstractsMap map;
 
     /**
      * 建構子，初始化路徑類別
@@ -29,6 +30,7 @@ public abstract class AbstractsPath {
         this.maxBranches = maxBranches;
         this.levelNodes = new HashMap<>();
         this.root = null;
+        this.map = null;
     }
 
     /**
@@ -94,6 +96,22 @@ public abstract class AbstractsPath {
      */
     public AbstractsNode getRoot() {
         return root;
+    }
+
+    /**
+     * 獲取地圖
+     * @return 地圖
+     */
+    public AbstractsMap getMap() {
+        return map;
+    }
+
+    /**
+     * 設置地圖
+     * @param map 地圖
+     */
+    public void setMap(AbstractsMap map) {
+        this.map = map;
     }
 
     /**

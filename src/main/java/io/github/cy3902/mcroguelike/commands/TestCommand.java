@@ -1,6 +1,5 @@
 package io.github.cy3902.mcroguelike.commands;
 
-import io.github.cy3902.mcroguelike.MCRogueLike;
 import io.github.cy3902.mcroguelike.abstracts.AbstractsCommand;
 import io.github.cy3902.mcroguelike.abstracts.AbstractsPath;
 import io.github.cy3902.mcroguelike.gui.PathGUI;
@@ -35,7 +34,7 @@ public class TestCommand extends AbstractsCommand {
         Player player = (Player) sender;
         
         // 創建一個10x10的測試路徑
-        AbstractsPath path = MCRogueLike.getPaths().get(0);
+        AbstractsPath path = mcRogueLike.getPathManager().getPath("test");
         path.generateTree();
         PathGUI gui = new PathGUI(path);
         gui.openGUI(player);

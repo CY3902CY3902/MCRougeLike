@@ -26,66 +26,126 @@ import java.util.Map;
  * 生成點文件管理類
  * 用於讀取和保存生成點配置文件
  */
-public class SpawnpointFile extends FileProvider<SpawnpointConfig> {
+public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConfig>> {
     private static final String SPAWNPOINT_DIRECTORY = "spawnpoints";
-    private final FileProviderList<SpawnpointFile> fileList;
-    private SpawnpointConfig configObj;
-    private AbstractSpawnpoint spawnpoint;
+    private final java.util.Map<String, SpawnpointConfig> configs = new HashMap<>();
+    private final java.util.Map<String, AbstractSpawnpoint> spawnpoints = new HashMap<>();
+    private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
 
     /**
      * 構造函數
      * @param plugin 插件實例
-     * @param fileName 文件名稱
      */
-    public SpawnpointFile(Plugin plugin, String fileName) {
-        super(plugin, fileName, SPAWNPOINT_DIRECTORY);
-        this.fileList = new FileProviderList<>(plugin, SPAWNPOINT_DIRECTORY, ".yml");
-        this.fileList.addProvider(fileName, this);
+    public SpawnpointFile() {
+        super(SPAWNPOINT_DIRECTORY, ".yml");
+        initializeProviders();
     }
 
-    @Override
-    public SpawnpointConfig load() {
-        SpawnpointConfig spawnpointConfig = new SpawnpointConfig();
-
-        // 讀取基本屬性
-        spawnpointConfig.setTimeWait(yml.getInt("time_wait", 20));
-        spawnpointConfig.setMaxSpawnAmount(yml.getInt("max_spawn_amount", 10));
-
-        // 讀取怪物配置
-        ConfigurationSection mobsSection = yml.getConfigurationSection("mobs");
-        if (mobsSection != null) {
-            Map<String, SpawnpointConfig.MobConfig> mobs = new HashMap<>();
-            for (String mobType : mobsSection.getKeys(false)) {
-                ConfigurationSection mobSection = mobsSection.getConfigurationSection(mobType);
-                if (mobSection != null) {
-                    SpawnpointConfig.MobConfig mobConfig = new SpawnpointConfig.MobConfig(
-                        mobSection.getDouble("health_multiplier", 0.4),
-                        mobSection.getDouble("damage_multiplier", 0.4),
-                        mobSection.getDouble("speed_multiplier", 0.4),
-                        mobSection.getBoolean("is_boss", false)
-                    );
-                    mobs.put(mobType, mobConfig);
-                }
-            }
-            spawnpointConfig.setMobs(mobs);
+    /**
+     * 初始化所有providers
+     */
+    private void initializeProviders() {
+        File spawnpointDir = new File(mcroguelike.getDataFolder(), SPAWNPOINT_DIRECTORY);
+        if (!spawnpointDir.exists()) {
+            spawnpointDir.mkdirs();
+            return;
         }
 
-        this.configObj = spawnpointConfig;
+        File[] files = spawnpointDir.listFiles((dir, name) -> name.endsWith(".yml"));
+        if (files != null) {
+            for (File file : files) {
+                String spawnpointId = file.getName().replace(".yml", "");
+                FileProvider<SpawnpointConfig> provider = new FileProvider<SpawnpointConfig>(file.getName(), SPAWNPOINT_DIRECTORY) {
+                    @Override
+                    public SpawnpointConfig load() {
+                        SpawnpointConfig spawnpointConfig = new SpawnpointConfig();
+
+                        // 讀取基本屬性
+                        spawnpointConfig.setTimeWait(yml.getInt("time_wait", 20));
+                        spawnpointConfig.setMaxSpawnAmount(yml.getInt("max_spawn_amount", 10));
+
+                        // 讀取怪物配置
+                        ConfigurationSection mobsSection = yml.getConfigurationSection("mobs");
+                        if (mobsSection != null) {
+                            Map<String, SpawnpointConfig.MobConfig> mobs = new HashMap<>();
+                            for (String mobType : mobsSection.getKeys(false)) {
+                                ConfigurationSection mobSection = mobsSection.getConfigurationSection(mobType);
+                                if (mobSection != null) {
+                                    SpawnpointConfig.MobConfig mobConfig = new SpawnpointConfig.MobConfig(
+                                        mobSection.getDouble("health_multiplier", 0.4),
+                                        mobSection.getDouble("damage_multiplier", 0.4),
+                                        mobSection.getDouble("speed_multiplier", 0.4),
+                                        mobSection.getBoolean("is_boss", false)
+                                    );
+                                    mobs.put(mobType, mobConfig);
+                                }
+                            }
+                            spawnpointConfig.setMobs(mobs);
+                        }
+
+                        return spawnpointConfig;
+                    }
+
+                    @Override
+                    public void save(SpawnpointConfig config) {
+                        // 保存基本屬性
+                        yml.set("time_wait", config.getTimeWait());
+                        yml.set("max_spawn_amount", config.getMaxSpawnAmount());
+
+                        // 保存怪物配置
+                        ConfigurationSection mobsSection = yml.createSection("mobs");
+                        for (Map.Entry<String, SpawnpointConfig.MobConfig> entry : config.getMobs().entrySet()) {
+                            ConfigurationSection mobSection = mobsSection.createSection(entry.getKey());
+                            SpawnpointConfig.MobConfig mobConfig = entry.getValue();
+                            mobSection.set("health_multiplier", mobConfig.getHealthMultiplier());
+                            mobSection.set("damage_multiplier", mobConfig.getDamageMultiplier());
+                            mobSection.set("speed_multiplier", mobConfig.getSpeedMultiplier());
+                            mobSection.set("is_boss", mobConfig.isBoss());
+                        }
+
+                        try {
+                            yml.save(file);
+                        } catch (IOException e) {
+                            mcroguelike.getLogger().log(Level.SEVERE, "Could not save spawnpoint config to " + file, e);
+                        }
+                    }
+                };
+                addProvider(spawnpointId, provider);
+            }
+        }
+    }
+
+    /**
+     * 加載指定ID的生成點配置
+     * @param spawnpointId 生成點ID
+     * @return 生成點配置
+     */
+    public SpawnpointConfig loadSpawnpoint(String spawnpointId) {
+        FileProvider<SpawnpointConfig> provider = getProvider(spawnpointId);
+        if (provider == null) {
+            return null;
+        }
+        
+        SpawnpointConfig config = provider.load();
+        configs.put(spawnpointId, config);
+        
         // 將配置轉換成實際的生成點物件
-        this.spawnpoint = convertToSpawnpoint(spawnpointConfig);
+        AbstractSpawnpoint spawnpoint = convertToSpawnpoint(spawnpointId, config);
+        spawnpoints.put(spawnpointId, spawnpoint);
         
         // 將生成點物件存儲到MCRogueLike的全域變數中
-        MCRogueLike.addSpawnPoint(fileName, this.spawnpoint);
+        MCRogueLike.getInstance().getSpawnpointManager().addSpawnpoint(spawnpointId, spawnpoint);
         
-        return spawnpointConfig;
+        return config;
     }
 
     /**
      * 將配置轉換成實際的生成點物件
+     * @param spawnpointId 生成點ID
      * @param config 生成點配置
      * @return 生成點物件
      */
-    private AbstractSpawnpoint convertToSpawnpoint(SpawnpointConfig config) {
+    private AbstractSpawnpoint convertToSpawnpoint(String spawnpointId, SpawnpointConfig config) {
         List<AbstractsMob> mobs = new ArrayList<>();
         for (Map.Entry<String, SpawnpointConfig.MobConfig> entry : config.getMobs().entrySet()) {
             String mobType = entry.getKey();
@@ -102,72 +162,68 @@ public class SpawnpointFile extends FileProvider<SpawnpointConfig> {
             ));
         }
 
-        // 創建生成點物件 - 簡化版本
+        // 創建生成點物件
         return new Spawnpoint(
-            fileName,  // 使用文件名作為生成點名稱
+            spawnpointId,
             config.getTimeWait(),
             config.getMaxSpawnAmount(),
             mobs
         );
     }
 
-    @Override
-    public void save(SpawnpointConfig config) {
-        // 保存基本屬性
-        yml.set("time_wait", config.getTimeWait());
-        yml.set("max_spawn_amount", config.getMaxSpawnAmount());
-
-        // 保存怪物配置
-        ConfigurationSection mobsSection = yml.createSection("mobs");
-        for (Map.Entry<String, SpawnpointConfig.MobConfig> entry : config.getMobs().entrySet()) {
-            ConfigurationSection mobSection = mobsSection.createSection(entry.getKey());
-            SpawnpointConfig.MobConfig mobConfig = entry.getValue();
-            mobSection.set("health_multiplier", mobConfig.getHealthMultiplier());
-            mobSection.set("damage_multiplier", mobConfig.getDamageMultiplier());
-            mobSection.set("speed_multiplier", mobConfig.getSpeedMultiplier());
-            mobSection.set("is_boss", mobConfig.isBoss());
-        }
-
-        try {
-            yml.save(file);
-        } catch (IOException e) {
-            plugin.getLogger().log(Level.SEVERE, "Could not save spawnpoint config to " + file, e);
-        }
-    }
-
     /**
-     * 獲取文件列表
-     * @return 文件列表
-     */
-    public FileProviderList<SpawnpointFile> getFileList() {
-        return fileList;
-    }
-
-    /**
-     * 獲取生成點配置
-     * @return 生成點配置
-     */
-    public SpawnpointConfig getConfigObj() {
-        return configObj;
-    }
-
-    /**
-     * 設置生成點配置
+     * 保存指定ID的生成點配置
+     * @param spawnpointId 生成點ID
      * @param config 生成點配置
      */
-    public void setConfigObj(SpawnpointConfig configObj) {
-        this.configObj = configObj;
+    public void saveSpawnpoint(String spawnpointId, SpawnpointConfig config) {
+        FileProvider<SpawnpointConfig> provider = getProvider(spawnpointId);
+        if (provider == null) {
+            return;
+        }
+        
+        provider.save(config);
+        configs.put(spawnpointId, config);
+        
         // 更新生成點物件
-        this.spawnpoint = convertToSpawnpoint(configObj);
+        AbstractSpawnpoint spawnpoint = convertToSpawnpoint(spawnpointId, config);
+        spawnpoints.put(spawnpointId, spawnpoint);
+        
         // 更新MCRogueLike中的生成點物件
-        MCRogueLike.addSpawnPoint(fileName, this.spawnpoint);
+        MCRogueLike.getInstance().getSpawnpointManager().addSpawnpoint(spawnpointId, spawnpoint);
     }
 
     /**
-     * 獲取生成點物件
+     * 獲取指定ID的生成點配置
+     * @param spawnpointId 生成點ID
+     * @return 生成點配置
+     */
+    public SpawnpointConfig getConfig(String spawnpointId) {
+        return configs.get(spawnpointId);
+    }
+
+    /**
+     * 獲取指定ID的生成點物件
+     * @param spawnpointId 生成點ID
      * @return 生成點物件
      */
-    public AbstractSpawnpoint getSpawnpoint() {
-        return spawnpoint;
+    public AbstractSpawnpoint getSpawnpoint(String spawnpointId) {
+        return spawnpoints.get(spawnpointId);
+    }
+    
+    /**
+     * 獲取所有生成點配置
+     * @return 生成點配置列表
+     */
+    public java.util.Map<String, SpawnpointConfig> getAllConfigs() {
+        return configs;
+    }
+    
+    /**
+     * 獲取所有生成點物件
+     * @return 生成點物件列表
+     */
+    public java.util.Map<String, AbstractSpawnpoint> getAllSpawnpoints() {
+        return spawnpoints;
     }
 } 

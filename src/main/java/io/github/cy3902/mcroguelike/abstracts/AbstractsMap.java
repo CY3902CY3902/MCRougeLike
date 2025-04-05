@@ -1,12 +1,10 @@
 package io.github.cy3902.mcroguelike.abstracts;
 
 import org.bukkit.Bukkit;
-import org.bukkit.World;
 
 import io.github.cy3902.mcroguelike.map.MapLocation;
 import io.github.cy3902.mcroguelike.utils.LocationUtils;
 
-import org.bukkit.GameRule;
 import org.bukkit.Location;
 
 import java.util.ArrayList;

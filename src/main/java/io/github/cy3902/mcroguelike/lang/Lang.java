@@ -1,10 +1,8 @@
 package io.github.cy3902.mcroguelike.lang;
 
 import io.github.cy3902.mcroguelike.abstracts.FileProvider;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
@@ -17,8 +15,8 @@ public class Lang extends FileProvider<Map<String, String>> {
     private Map<String, String> messages;
     private String language;
 
-    public Lang(Plugin plugin, String language) {
-        super(plugin, "lang_" + language + ".yml", "lang");
+    public Lang(String language) {
+        super("lang_" + language + ".yml", "lang");
         this.language = language;
         this.messages = new HashMap<>();
     }
@@ -42,7 +40,7 @@ public class Lang extends FileProvider<Map<String, String>> {
         try {
             yml.save(file);
         } catch (Exception e) {
-            plugin.getLogger().log(Level.SEVERE, "Error saving language file: " + file.getName(), e);
+            mcroguelike.getLogger().log(Level.SEVERE, "Error saving language file: " + file.getName(), e);
         }
     }
 
@@ -55,7 +53,7 @@ public class Lang extends FileProvider<Map<String, String>> {
     @Override
     public void readDefault() {
         if (!file.exists()) {
-            plugin.saveResource(directory + "/" + fileName, false);
+            mcroguelike.saveResource(directory + "/" + fileName, false);
         }
     }
 
@@ -92,7 +90,7 @@ public class Lang extends FileProvider<Map<String, String>> {
     public void setLanguage(String language) {
         this.language = language;
         // Create a new Lang instance with the new language
-        Lang newLang = new Lang(plugin, language);
+        Lang newLang = new Lang(language);
         this.messages = newLang.load();
         this.yml = newLang.yml;
         this.file = newLang.file;

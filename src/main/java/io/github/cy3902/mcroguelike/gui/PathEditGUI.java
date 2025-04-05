@@ -1,6 +1,7 @@
 package io.github.cy3902.mcroguelike.gui;
 
 import io.github.cy3902.mcroguelike.MCRogueLike;
+import io.github.cy3902.mcroguelike.abstracts.AbstractsPath;
 import io.github.cy3902.mcroguelike.path.Path;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -53,17 +54,8 @@ public class PathEditGUI {
             return;
         }
 
-        FileConfiguration config = YamlConfiguration.loadConfiguration(file);
-        currentPath = new Path(
-            pathId,
-            config.getString("name", "未命名路徑"),
-            config.getInt("max_nodes", 10),
-            config.getInt("max_branches", 3),
-            config.getInt("max_height", 5),
-            config.getDouble("special_node_probability", 0.2),
-            config.getStringList("room_names"),
-            config.getStringList("boss_room_names")
-        );
+        AbstractsPath abstractsPath = MCRogueLike.getInstance().getPathManager().getPath(pathId);
+        Path currentPath = (Path) abstractsPath;
 
         Inventory gui = Bukkit.createInventory(null, 54, ChatColor.DARK_PURPLE + "編輯路徑: " + currentPath.getName());
 
