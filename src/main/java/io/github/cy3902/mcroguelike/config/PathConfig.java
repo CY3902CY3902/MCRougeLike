@@ -1,6 +1,5 @@
 package io.github.cy3902.mcroguelike.config;
 
-import io.github.cy3902.mcroguelike.abstracts.AbstractsMap;
 import java.util.ArrayList;
 import java.util.List;
 

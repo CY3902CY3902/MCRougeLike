@@ -35,9 +35,8 @@ public class Commands implements CommandExecutor, TabCompleter {
         commands.put("gui", new TestCommand());
         commands.put("paste", new SchemCommand());
         commands.put("room", new RoomCommand());
-        commands.put("path", new PathCommand());
 
-        // 註冊GUI處理器
+        // 註冊GUI處理器    
         RoomGUIHandler.getInstance();
         PathGUIHandler.getInstance();
     }

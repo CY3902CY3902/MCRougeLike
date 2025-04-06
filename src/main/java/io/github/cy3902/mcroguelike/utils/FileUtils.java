@@ -83,4 +83,43 @@ public class FileUtils {
             }
         }
     }
+
+    /**
+     * 測試方法，用於輸出資源文件的位置和內容
+     *
+     * @param plugin 插件實例
+     */
+    public static void testResourceFiles(JavaPlugin plugin) {
+        try {
+            // 輸出 JAR 文件路徑
+            String jarPath = plugin.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
+            jarPath = java.net.URLDecoder.decode(jarPath, StandardCharsets.UTF_8);
+            plugin.getLogger().info("JAR 文件路徑: " + jarPath);
+
+            // 使用 JarFile 讀取 JAR 文件
+            try (JarFile jar = new JarFile(jarPath)) {
+                Enumeration<JarEntry> entries = jar.entries();
+                boolean foundResources = false;
+
+                plugin.getLogger().info("JAR 文件中的資源:");
+                while (entries.hasMoreElements()) {
+                    JarEntry entry = entries.nextElement();
+                    String entryName = entry.getName();
+
+                    // 檢查是否為 MCRogueLike 目錄下的文件
+                    if (entryName.startsWith("MCRogueLike/")) {
+                        foundResources = true;
+                        plugin.getLogger().info("  - " + entryName);
+                    }
+                }
+
+                if (!foundResources) {
+                    plugin.getLogger().warning("未找到 MCRogueLike 目錄下的任何資源文件!");
+                }
+            }
+        } catch (Exception e) {
+            plugin.getLogger().severe("測試資源文件時出錯: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 }

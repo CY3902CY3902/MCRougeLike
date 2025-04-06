@@ -82,6 +82,7 @@ public class RoomFile extends FileProviderList<FileProvider<RoomConfig>> {
                     }
                 };
                 addProvider(roomId, provider);
+                loadRoom(roomId);
             }
         }
     }
@@ -105,6 +106,16 @@ public class RoomFile extends FileProviderList<FileProvider<RoomConfig>> {
         rooms.put(roomId, room);
         
         return config;
+    }
+
+    /**
+     * 刪除指定ID的房間配置
+     * @param roomId 房間ID
+     */
+    public void removeProvider(String roomId) {
+        removeProvider(roomId);
+        configs.remove(roomId);
+        rooms.remove(roomId);
     }
 
     /**

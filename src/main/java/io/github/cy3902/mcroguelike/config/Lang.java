@@ -83,7 +83,10 @@ public class Lang extends FileProvider<Map<String, String>> {
                 "&f------ &b&lMCRogueLike &f------",
                 "&a指令: &e/mcrougelike",
                 "&a子命令:",
-                "&8 - reload &7重新載入此插件的所有設定檔"
+                "&8 - reload &7重新載入此插件的所有設定檔",
+                "&8 - gui &7打開GUI介面",
+                "&8 - paste <檔案名> &7貼上結構",
+                "&8 - room &7管理房間"
         );
 
         // 從配置文件中讀取並儲存語言字符串
@@ -102,6 +105,7 @@ public class Lang extends FileProvider<Map<String, String>> {
         messages.put("no_permission", color(yml.getString("no_permission", "&c你沒有權限使用此指定")));
         messages.put("reload", color(yml.getString("reload", "&f正在重新載入此插件的所有設定檔")));
         messages.put("reload_error", color(yml.getString("reload_error", "&c載入此插件的所有設定檔時出現錯誤")));
+        messages.put("reload_success", color(yml.getString("reload_success", "&a插件重新載入成功!")));
         messages.put("read_yml_error", color(yml.getString("read_yml_error", "&cYML 文件配置錯誤! 檔案路徑: ")));
         messages.put("world_not_found_message", color(yml.getString("world_not_found_message", "&c世界不存在，值:")));
         messages.put("read_lang_error", color(yml.getString("read_lang_error", "&c文件配置錯誤，默認繁體中文")));
@@ -119,6 +123,60 @@ public class Lang extends FileProvider<Map<String, String>> {
         messages.put("gui.path_difficulty", color(yml.getString("gui.path_difficulty", "&e難度")));
         messages.put("gui.path_description", color(yml.getString("gui.path_description", "&f描述")));
         messages.put("player_only", color(yml.getString("player_only", "&c此指令只能由玩家使用")));
+        
+        // 結構相關文字
+        messages.put("schem_file_not_found", color(yml.getString("schem_file_not_found", "&c找不到結構文件: %filename%")));
+        messages.put("schem_pasted", color(yml.getString("schem_pasted", "&a已貼上結構: %filename%")));
+        
+        // 房間GUI相關文字
+        messages.put("room.gui.title", color(yml.getString("room.gui.title", "&b&lMCRogueLike &f房間管理系統")));
+        messages.put("room.gui.edit_title", color(yml.getString("room.gui.edit_title", "&b&lMCRogueLike &f編輯房間: ")));
+        messages.put("room.gui.room_type_title", color(yml.getString("room.gui.room_type_title", "&b&lMCRogueLike &f選擇房間類型")));
+        messages.put("room.gui.prev_page", color(yml.getString("room.gui.prev_page", "&a上一頁")));
+        messages.put("room.gui.next_page", color(yml.getString("room.gui.next_page", "&a下一頁")));
+        messages.put("room.gui.page_info", color(yml.getString("room.gui.page_info", "&a頁面 ")));
+        messages.put("room.gui.create_new", color(yml.getString("room.gui.create_new", "&a創建新房間")));
+        messages.put("room.gui.room_name", color(yml.getString("room.gui.room_name", "&a房間名稱")));
+        messages.put("room.gui.room_type", color(yml.getString("room.gui.room_type", "&a房間類型")));
+        messages.put("room.gui.structure", color(yml.getString("room.gui.structure", "&a結構名稱")));
+        messages.put("room.gui.time_limit", color(yml.getString("room.gui.time_limit", "&a時限")));
+        messages.put("room.gui.base_score", color(yml.getString("room.gui.base_score", "&a基礎分數")));
+        messages.put("room.gui.player_spawn", color(yml.getString("room.gui.player_spawn", "&a玩家出生點")));
+        messages.put("room.gui.min_floor", color(yml.getString("room.gui.min_floor", "&a最小樓層")));
+        messages.put("room.gui.max_floor", color(yml.getString("room.gui.max_floor", "&a最大樓層")));
+        messages.put("room.gui.save", color(yml.getString("room.gui.save", "&a保存更改")));
+        messages.put("room.gui.back", color(yml.getString("room.gui.back", "&c返回")));
+        messages.put("room.gui.current", color(yml.getString("room.gui.current", "&7當前")));
+        messages.put("room.gui.click_to_edit", color(yml.getString("room.gui.click_to_edit", "&e左鍵點擊: 編輯房間")));
+        messages.put("room.gui.click_to_delete", color(yml.getString("room.gui.click_to_delete", "&c右鍵點擊: 刪除房間")));
+        messages.put("room.gui.click_to_select", color(yml.getString("room.gui.click_to_select", "&e點擊選擇此類型")));
+        messages.put("room.gui.id", color(yml.getString("room.gui.id", "&7ID: ")));
+        messages.put("room.gui.type", color(yml.getString("room.gui.type", "&7類型: ")));
+        messages.put("room.gui.structure_info", color(yml.getString("room.gui.structure_info", "&7結構: ")));
+        messages.put("room.gui.time_limit_info", color(yml.getString("room.gui.time_limit_info", "&7時限: ")));
+        messages.put("room.gui.base_score_info", color(yml.getString("room.gui.base_score_info", "&7基礎分數: ")));
+        messages.put("room.gui.player_spawn_info", color(yml.getString("room.gui.player_spawn_info", "&7玩家出生點: ")));
+        messages.put("room.gui.min_floor_info", color(yml.getString("room.gui.min_floor_info", "&7當前最小樓層: ")));
+        messages.put("room.gui.max_floor_info", color(yml.getString("room.gui.max_floor_info", "&7當前最大樓層: ")));
+        messages.put("room.gui.unknown", color(yml.getString("room.gui.unknown", "未知")));
+        messages.put("room.gui.not_set", color(yml.getString("room.gui.not_set", "未設置")));
+        messages.put("room.gui.seconds", color(yml.getString("room.gui.seconds", " 秒")));
+        messages.put("room.gui.yes", color(yml.getString("room.gui.yes", "是")));
+        messages.put("room.gui.no", color(yml.getString("room.gui.no", "否")));
+        messages.put("room.gui.room_deleted", color(yml.getString("room.gui.room_deleted", "&c房間已刪除！")));
+        messages.put("room.gui.changes_saved", color(yml.getString("room.gui.changes_saved", "&a更改已保存！")));
+        messages.put("room.gui.room_type_updated", color(yml.getString("room.gui.room_type_updated", "&a房間類型已更新為: ")));
+        messages.put("room.gui.move_to_spawn", color(yml.getString("room.gui.move_to_spawn", "&e請移動到你想要設置的出生點位置，然後輸入 'confirm' 確認。")));
+        messages.put("room.gui.cancel_spawn", color(yml.getString("room.gui.cancel_spawn", "&e輸入 'cancel' 取消設置。")));
+        messages.put("room.gui.spawn_set", color(yml.getString("room.gui.spawn_set", "&a出生點已設置為: ")));
+        messages.put("room.gui.spawn_cancelled", color(yml.getString("room.gui.spawn_cancelled", "&c已取消設置出生點")));
+        messages.put("room.gui.invalid_input", color(yml.getString("room.gui.invalid_input", "&c無效的輸入。請輸入 'confirm' 確認或 'cancel' 取消。")));
+        messages.put("room.gui.room_exists", color(yml.getString("room.gui.room_exists", "&c該房間ID已存在！")));
+        messages.put("room.gui.room_created", color(yml.getString("room.gui.room_created", "&a已創建新房間！")));
+        messages.put("room.gui.settings_updated", color(yml.getString("room.gui.settings_updated", "&a已更新設置！")));
+        messages.put("room.gui.invalid_number", color(yml.getString("room.gui.invalid_number", "&c請輸入有效的數值！")));
+        messages.put("room.gui.enter_value", color(yml.getString("room.gui.enter_value", "&e請輸入新的")));
+        messages.put("room.gui.config_not_found", color(yml.getString("room.gui.config_not_found", "&c無法找到房間配置！")));
     }
 
     /**

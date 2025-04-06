@@ -5,7 +5,6 @@ import io.github.cy3902.mcroguelike.abstracts.AbstractsMap;
 import io.github.cy3902.mcroguelike.abstracts.AbstractsPath;
 import io.github.cy3902.mcroguelike.abstracts.AbstractsSQL;
 import io.github.cy3902.mcroguelike.commands.Commands;
-import io.github.cy3902.mcroguelike.commands.PathCommand;
 import io.github.cy3902.mcroguelike.config.ConfigFile;
 import io.github.cy3902.mcroguelike.config.Lang;
 import io.github.cy3902.mcroguelike.files.MapFile;
@@ -16,22 +15,19 @@ import io.github.cy3902.mcroguelike.utils.FileUtils;
 import io.github.cy3902.mcroguelike.utils.MsgUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
-import io.github.cy3902.mcroguelike.manager.RoomManager;
-import io.github.cy3902.mcroguelike.manager.MapManager;
-import io.github.cy3902.mcroguelike.manager.PathManager;
-import io.github.cy3902.mcroguelike.manager.SpawnpointManager;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 
 public final class MCRogueLike extends JavaPlugin {
     private static MCRogueLike mcRogueLike;
     private static Lang lang;
+    private static MapFile mapFile;
+    private static PathFile pathFile;
+    private static RoomFile roomFile;
+    private static SpawnpointFile spawnpointFile;
     private static String DATABASE_URL;
     private static Lang.LangType langType;
     private static AbstractsSQL sql;
@@ -39,17 +35,9 @@ public final class MCRogueLike extends JavaPlugin {
 
     private final MsgUtils msgUtils = new MsgUtils(this);
 
-    private final RoomManager roomManager;
-    private final MapManager mapManager;
-    private final PathManager pathManager;
-    private final SpawnpointManager spawnpointManager;
 
     public MCRogueLike() {
         mcRogueLike = this;
-        this.roomManager = new RoomManager();
-        this.mapManager = new MapManager();
-        this.pathManager = new PathManager();
-        this.spawnpointManager = new SpawnpointManager();
     }
 
     @Override
@@ -64,15 +52,13 @@ public final class MCRogueLike extends JavaPlugin {
     @Override
     public void onDisable() {
         // Clean up resources if needed
-        mapManager.clear();
-        pathManager.clear();
-        spawnpointManager.clear();
         sql = null;
         lang = null;
         configFile = null;
     }
 
     public void initEssential() throws IOException {
+        
         // Initialize folders
         File dataFolder = getDataFolder();
         if (!dataFolder.exists()) {
@@ -89,10 +75,12 @@ public final class MCRogueLike extends JavaPlugin {
 
         // Create and populate folders
         if (!langFolder.exists()) {
+            
             langFolder.mkdirs();
             FileUtils.copyResourceFolder(this, "MCRogueLike/Lang", langFolder);
         }
         if (!pathFolder.exists()) {
+            
             pathFolder.mkdirs();
             FileUtils.copyResourceFolder(this, "MCRogueLike/Path", pathFolder);
         }
@@ -117,20 +105,26 @@ public final class MCRogueLike extends JavaPlugin {
 
 
         // Initialize configuration files
-        
+
+        mapFile = new MapFile();
+        mapFile.reloadAll();
+        pathFile = new PathFile();
+        pathFile.reloadAll();
+        roomFile = new RoomFile();
+        roomFile.reloadAll();
+        spawnpointFile = new SpawnpointFile();
+        spawnpointFile.reloadAll();
+
+
         configFile = new ConfigFile(this);
-        configFile.readDefault();
+        configFile.reload();
 
         lang = new Lang("Lang", langType + ".yml");
-        lang.readDefault();
+        lang.reload();
 
-        roomManager.reload();
-        mapManager.reload();
-        pathManager.reload();
-        spawnpointManager.reload();
         
         // Load and apply map rules
-        for (AbstractsMap map : mapManager.getMaps().values()) {
+        for (AbstractsMap map : mapFile.getAllMaps().values()) {
             map.applyMapRules();
         }
 
@@ -142,7 +136,6 @@ public final class MCRogueLike extends JavaPlugin {
         Bukkit.getPluginCommand("mcrougelike").setExecutor(new Commands());
         Bukkit.getPluginCommand("mcrougelike").setTabCompleter(new Commands());
         Commands.register();
-        Commands.registerCommand(new PathCommand());
     }
 
     public static MCRogueLike getInstance() {
@@ -179,21 +172,6 @@ public final class MCRogueLike extends JavaPlugin {
         MCRogueLike.sql = sql;
     }
 
-    public MapManager getMapManager() {
-        return mapManager;
-    }
-
-    public PathManager getPathManager() {
-        return pathManager;
-    }
-
-    public SpawnpointManager getSpawnpointManager() {
-        return spawnpointManager;
-    }
-
-    public RoomManager getRoomManager() {
-        return roomManager;
-    }
 
     public String color(String msg) {
         return msgUtils.msg(msg);
@@ -203,4 +181,21 @@ public final class MCRogueLike extends JavaPlugin {
         return msgUtils.msg(msg);
     }
 
+    public MapFile getMapFile() {
+        return mapFile;
+    }
+
+    public PathFile getPathFile() {
+        return pathFile;
+    }       
+
+    public RoomFile getRoomFile() {
+        return roomFile;
+    }
+
+    public SpawnpointFile getSpawnpointFile() {
+        return spawnpointFile;
+    }
+    
+    
 }

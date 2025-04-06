@@ -66,7 +66,7 @@ public class Path extends AbstractsPath {
         public AbstractsRoom RandomRoomByPath(int level) {
             List<String> validRooms = new ArrayList<>();
             for (String roomName : roomNames) {
-                AbstractsRoom room = mcRogueLike.getRoomManager().getRoom(roomName);
+                AbstractsRoom room = mcRogueLike.getRoomFile().getRoom(roomName);
                 mcRogueLike.info("room: " + room, Level.INFO);
                 mcRogueLike.info("roomName: " + roomName, Level.INFO);
 
@@ -85,7 +85,7 @@ public class Path extends AbstractsPath {
                 return null;
             }
             
-            return mcRogueLike.getRoomManager().getRoom(validRooms.get(RANDOM.nextInt(validRooms.size())));
+            return mcRogueLike.getRoomFile().getRoom(validRooms.get(RANDOM.nextInt(validRooms.size())));
         }
     }
 

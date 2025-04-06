@@ -105,6 +105,7 @@ public class PathFile extends FileProviderList<FileProvider<PathConfig>> {
                     }
                 };
                 addProvider(pathId, provider);
+                loadPath(pathId);
             }
         }
     }
@@ -127,12 +128,20 @@ public class PathFile extends FileProviderList<FileProvider<PathConfig>> {
         AbstractsPath path = convertToPath(pathId, config);
         paths.put(pathId, path);
         
-        // 將路徑物件存儲到MCRogueLike的全域變數中
-        MCRogueLike.getInstance().getPathManager().addPath(pathId, path);
         
         return config;
     }
 
+    /**
+     * 刪除指定ID的路徑配置
+     * @param pathId 路徑ID
+     */
+    public void removeProvider(String pathId) {
+        removeProvider(pathId);
+        configs.remove(pathId);
+        paths.remove(pathId);
+    }
+    
     /**
      * 將配置轉換成實際的路徑物件
      * @param pathId 路徑ID
@@ -141,7 +150,7 @@ public class PathFile extends FileProviderList<FileProvider<PathConfig>> {
      */
     private AbstractsPath convertToPath(String pathId, PathConfig config) {
         // 設置地圖
-        AbstractsMap map = MCRogueLike.getInstance().getMapManager().getMap(config.getMapName());
+        AbstractsMap map = MCRogueLike.getInstance().getMapFile().getMap(config.getMapName());
         if (map == null) {
             mcroguelike.getLogger().warning("Map not found: " + config.getMapName());
         }
@@ -178,8 +187,6 @@ public class PathFile extends FileProviderList<FileProvider<PathConfig>> {
         AbstractsPath path = convertToPath(pathId, config);
         paths.put(pathId, path);
         
-        // 更新MCRogueLike中的路徑物件
-        MCRogueLike.getInstance().getPathManager().addPath(pathId, path);
     }
 
     /**

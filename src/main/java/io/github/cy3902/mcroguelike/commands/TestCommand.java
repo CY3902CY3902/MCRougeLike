@@ -34,7 +34,7 @@ public class TestCommand extends AbstractsCommand {
         Player player = (Player) sender;
         
         // 創建一個10x10的測試路徑
-        AbstractsPath path = mcRogueLike.getPathManager().getPath("test");
+        AbstractsPath path = mcRogueLike.getPathFile().getPath("test");
         path.generateTree();
         PathGUI gui = new PathGUI(path);
         gui.openGUI(player);

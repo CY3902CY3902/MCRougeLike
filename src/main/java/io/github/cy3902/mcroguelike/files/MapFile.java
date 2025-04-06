@@ -82,6 +82,7 @@ public class MapFile extends FileProviderList<FileProvider<MapConfig>> {
                     }
                 };
                 addProvider(mapId, provider);
+                loadMap(mapId);
             }
         }
     }
@@ -104,12 +105,20 @@ public class MapFile extends FileProviderList<FileProvider<MapConfig>> {
         AbstractsMap map = convertToMap(mapId, config);
         maps.put(mapId, map);
         
-        // 將地圖物件存儲到MCRogueLike的全域變數中
-        MCRogueLike.getInstance().getMapManager().addMap(mapId, map);
         
         return config;
     }
 
+    /**
+     * 刪除指定ID的地圖配置
+     * @param mapId 地圖ID
+     */
+    public void removeProvider(String mapId) {
+        removeProvider(mapId);
+        configs.remove(mapId);
+        maps.remove(mapId);
+    }
+    
     /**
      * 將配置轉換成實際的地圖物件
      * @param mapId 地圖ID
@@ -151,8 +160,6 @@ public class MapFile extends FileProviderList<FileProvider<MapConfig>> {
         AbstractsMap map = convertToMap(mapId, config);
         maps.put(mapId, map);
         
-        // 更新MCRogueLike中的地圖物件
-        MCRogueLike.getInstance().getMapManager().addMap(mapId, map);
     }
 
     /**

@@ -16,6 +16,7 @@ public class FileProviderList<T extends FileProvider<?>> {
     private final String directory;
     private final String extension;
     private final Map<String, T> providers;
+    
 
     /**
      * 構造函數

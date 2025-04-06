@@ -129,12 +129,21 @@ public class RoomGUI {
             gui.setItem(53, nextPage);
         }
 
-        // 添加創建新房間按鈕
-        ItemStack createButton = new ItemStack(Material.EMERALD);
-        ItemMeta createMeta = createButton.getItemMeta();
-        createMeta.setDisplayName(ChatColor.GREEN + "創建新房間");
-        createButton.setItemMeta(createMeta);
-        gui.setItem(49, createButton);
+
+
+        // 添加頁面信息
+        ItemStack pageInfo = new ItemStack(Material.PAPER);
+        ItemMeta pageMeta = pageInfo.getItemMeta();
+        pageMeta.setDisplayName(ChatColor.GREEN + "頁面 " + (page + 1) + "/" + totalPages);
+        pageInfo.setItemMeta(pageMeta);
+        gui.setItem(49, pageInfo);
+
+         // 添加創建新房間按鈕
+         ItemStack createButton = new ItemStack(Material.EMERALD);
+         ItemMeta createMeta = createButton.getItemMeta();
+         createMeta.setDisplayName(ChatColor.GREEN + "創建新房間");
+         createButton.setItemMeta(createMeta);
+         gui.setItem(47, createButton);
 
         player.openInventory(gui);
     }
@@ -211,7 +220,7 @@ public class RoomGUI {
         nameLore.add(ChatColor.GRAY + "當前名稱: " + ChatColor.WHITE + roomName);
         nameMeta.setLore(nameLore);
         nameItem.setItemMeta(nameMeta);
-        gui.setItem(10, nameItem);
+        gui.setItem(9, nameItem);
 
         // 房間類型
         ItemStack typeItem = new ItemStack(Material.BOOK);
@@ -221,7 +230,7 @@ public class RoomGUI {
         typeLore.add(ChatColor.GRAY + "當前類型: " + ChatColor.WHITE + config.getString("type", "未知"));
         typeMeta.setLore(typeLore);
         typeItem.setItemMeta(typeMeta);
-        gui.setItem(11, typeItem);
+        gui.setItem(10, typeItem);
 
         // 結構名稱
         ItemStack structureItem = new ItemStack(Material.STRUCTURE_BLOCK);
@@ -231,7 +240,7 @@ public class RoomGUI {
         structureLore.add(ChatColor.GRAY + "當前結構: " + ChatColor.WHITE + config.getString("structure", "未設置"));
         structureMeta.setLore(structureLore);
         structureItem.setItemMeta(structureMeta);
-        gui.setItem(12, structureItem);
+        gui.setItem(11, structureItem);
 
         // 時限
         ItemStack timeItem = new ItemStack(Material.CLOCK);
@@ -241,7 +250,7 @@ public class RoomGUI {
         timeLore.add(ChatColor.GRAY + "當前時限: " + ChatColor.WHITE + config.getInt("time_limit", 300) + " 秒");
         timeMeta.setLore(timeLore);
         timeItem.setItemMeta(timeMeta);
-        gui.setItem(13, timeItem);
+        gui.setItem(12, timeItem);
 
         // 基礎分數
         ItemStack scoreItem = new ItemStack(Material.EXPERIENCE_BOTTLE);
@@ -251,7 +260,7 @@ public class RoomGUI {
         scoreLore.add(ChatColor.GRAY + "當前分數: " + ChatColor.WHITE + config.getInt("baseScore", 100));
         scoreMeta.setLore(scoreLore);
         scoreItem.setItemMeta(scoreMeta);
-        gui.setItem(14, scoreItem);
+        gui.setItem(13, scoreItem);
 
         // 玩家出生點
         ItemStack spawnItem = new ItemStack(Material.COMPASS);
@@ -261,7 +270,7 @@ public class RoomGUI {
         spawnLore.add(ChatColor.GRAY + "當前位置: " + ChatColor.WHITE + config.getString("player_spawn", "未設置"));
         spawnMeta.setLore(spawnLore);
         spawnItem.setItemMeta(spawnMeta);
-        gui.setItem(15, spawnItem);
+        gui.setItem(14, spawnItem);
 
         // 最小樓層
         ItemStack minFloorItem = new ItemStack(Material.STONE);
@@ -271,7 +280,7 @@ public class RoomGUI {
         minFloorLore.add(ChatColor.GRAY + "當前最小樓層: " + ChatColor.WHITE + config.getInt("floor.min", 1));
         minFloorMeta.setLore(minFloorLore);
         minFloorItem.setItemMeta(minFloorMeta);
-        gui.setItem(16, minFloorItem);
+        gui.setItem(15, minFloorItem);
 
         // 最大樓層
         ItemStack maxFloorItem = new ItemStack(Material.STONE_BRICKS);
@@ -281,7 +290,7 @@ public class RoomGUI {
         maxFloorLore.add(ChatColor.GRAY + "當前最大樓層: " + ChatColor.WHITE + config.getInt("floor.max", 1));
         maxFloorMeta.setLore(maxFloorLore);
         maxFloorItem.setItemMeta(maxFloorMeta);
-        gui.setItem(17, maxFloorItem);
+        gui.setItem(16, maxFloorItem);
 
         // 保存按鈕
         ItemStack saveItem = new ItemStack(Material.LIME_WOOL);
@@ -328,7 +337,7 @@ public class RoomGUI {
     public void createNewRoom(String roomId, String type) {
         FileConfiguration config = new YamlConfiguration();
         
-        config.set("name", "新房間");
+        config.set("name", "new_room");
         config.set("type", type);
         config.set("structure", "default_structure");
         config.set("time_limit", 300);
@@ -367,7 +376,7 @@ public class RoomGUI {
         if (file.exists()) {
             file.delete();
         }
-        mcroguelike.getRoomManager().removeRoom(roomId);
+        mcroguelike.getRoomFile().removeProvider(roomId);
         roomConfigs.remove(roomId);
         reloadConfigs(); // 重新加載配置
     }

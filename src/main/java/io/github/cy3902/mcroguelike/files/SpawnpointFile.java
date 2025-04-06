@@ -111,6 +111,7 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
                     }
                 };
                 addProvider(spawnpointId, provider);
+                loadSpawnpoint(spawnpointId);
             }
         }
     }
@@ -133,12 +134,20 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
         AbstractSpawnpoint spawnpoint = convertToSpawnpoint(spawnpointId, config);
         spawnpoints.put(spawnpointId, spawnpoint);
         
-        // 將生成點物件存儲到MCRogueLike的全域變數中
-        MCRogueLike.getInstance().getSpawnpointManager().addSpawnpoint(spawnpointId, spawnpoint);
         
         return config;
     }
 
+    /**
+     * 刪除指定ID的生成點配置
+     * @param spawnpointId 生成點ID
+     */
+    public void removeProvider(String spawnpointId) {
+        removeProvider(spawnpointId);
+        configs.remove(spawnpointId);
+        spawnpoints.remove(spawnpointId);
+    }
+    
     /**
      * 將配置轉換成實際的生成點物件
      * @param spawnpointId 生成點ID
@@ -189,8 +198,6 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
         AbstractSpawnpoint spawnpoint = convertToSpawnpoint(spawnpointId, config);
         spawnpoints.put(spawnpointId, spawnpoint);
         
-        // 更新MCRogueLike中的生成點物件
-        MCRogueLike.getInstance().getSpawnpointManager().addSpawnpoint(spawnpointId, spawnpoint);
     }
 
     /**
