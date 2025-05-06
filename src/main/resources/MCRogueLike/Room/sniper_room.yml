@@ -3,7 +3,8 @@ type: "SniperMission"
 structure: "sniper_structure"
 description: "狙擊房間"
 time_limit: 450  # 7.5分鐘
-baseScore: 250
+base_score: 250
+early_completion_multiplier: 1.5
 player_spawn: "0,64,0"  # 玩家出生點
 floor:
   min: 1

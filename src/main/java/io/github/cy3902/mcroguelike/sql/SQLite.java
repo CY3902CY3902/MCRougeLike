@@ -1,7 +1,7 @@
 package io.github.cy3902.mcroguelike.sql;
 
 import io.github.cy3902.mcroguelike.MCRogueLike;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsSQL;
+import io.github.cy3902.mcroguelike.abstracts.AbstractSQL;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -14,8 +14,9 @@ import java.sql.Statement;
  * SQLite 資料庫操作類別，繼承自 AbstractsSQL。
  * 該類別用於連接 SQLite 資料庫，並創建所需的資料表。
  */
-public class SQLite extends AbstractsSQL {
+public class SQLite extends AbstractSQL {
 
+    private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
     private static String DATABASE_URL;
 
     /**
@@ -47,13 +48,28 @@ public class SQLite extends AbstractsSQL {
     @Override
     public void createTableIfNotExists() {
 
+        // 創建地圖位置表格
         String createMapLocationTableSQL = "CREATE TABLE IF NOT EXISTS mcroguelike_map_location ("
-                + "map TEXT NOT NULL PRIMARY KEY, "
-                + "location TEXT NOT NULL"
+                + "map VARCHAR(255) NOT NULL PRIMARY KEY, "
+                + "X DOUBLE NOT NULL," 
+                + "Y DOUBLE NOT NULL,"
+                + "Z DOUBLE NOT NULL"
                 + ");";
 
         try (Statement stmt = connection.createStatement()) {
             stmt.execute(createMapLocationTableSQL);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // 創建玩家路徑表格
+        String createPlayerPathTableSQL = "CREATE TABLE IF NOT EXISTS mcroguelike_player_path ("
+                + "player VARCHAR(255) NOT NULL PRIMARY KEY, "
+                + "path VARCHAR(255) NOT NULL"
+                + ");";
+
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(createPlayerPathTableSQL);
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -97,7 +113,7 @@ public class SQLite extends AbstractsSQL {
     public void clearTables(String table) {
         String clearTable = "DELETE FROM `" + table + "`";
         connect();
-        try (Connection conn = MCRogueLike.getSql().getConnection();
+        try (Connection conn = mcroguelike.getSql().getConnection();
              Statement stmt = conn.createStatement()) {
             stmt.executeUpdate(clearTable);
         } catch (SQLException e) {
@@ -144,4 +160,18 @@ public class SQLite extends AbstractsSQL {
             e.printStackTrace();
         }
     }
+
+    @Override
+    public void delete(String sql, String[] params) {
+        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+            for (int i = 0; i < params.length; i++) {
+                stmt.setString(i + 1, params[i]);
+            }
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+    
+
 }

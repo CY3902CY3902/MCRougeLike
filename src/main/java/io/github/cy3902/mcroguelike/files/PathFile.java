@@ -5,8 +5,8 @@ import io.github.cy3902.mcroguelike.abstracts.FileProvider;
 import io.github.cy3902.mcroguelike.abstracts.FileProviderList;
 import io.github.cy3902.mcroguelike.config.PathConfig;
 import io.github.cy3902.mcroguelike.path.Path;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsPath;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsMap;
+import io.github.cy3902.mcroguelike.abstracts.AbstractPath;
+import io.github.cy3902.mcroguelike.abstracts.AbstractMap;
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -16,10 +16,11 @@ import java.util.logging.Level;
  * 路徑文件管理類
  * 用於管理路徑配置文件
  */
+
 public class PathFile extends FileProviderList<FileProvider<PathConfig>> {
     private static final String PATH_DIRECTORY = "Path";
     private final java.util.Map<String, PathConfig> configs = new HashMap<>();
-    private final java.util.Map<String, AbstractsPath> paths = new HashMap<>();
+    private final java.util.Map<String, AbstractPath> paths = new HashMap<>();
     private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
 
     /**
@@ -125,7 +126,7 @@ public class PathFile extends FileProviderList<FileProvider<PathConfig>> {
         configs.put(pathId, config);
         
         // 將配置轉換成實際的路徑物件
-        AbstractsPath path = convertToPath(pathId, config);
+        AbstractPath path = convertToPath(pathId, config);
         paths.put(pathId, path);
         
         
@@ -148,9 +149,9 @@ public class PathFile extends FileProviderList<FileProvider<PathConfig>> {
      * @param config 路徑配置
      * @return 路徑物件
      */
-    private AbstractsPath convertToPath(String pathId, PathConfig config) {
+    private AbstractPath convertToPath(String pathId, PathConfig config) {
         // 設置地圖
-        AbstractsMap map = MCRogueLike.getInstance().getMapFile().getMap(config.getMapName());
+        AbstractMap map = MCRogueLike.getInstance().getMapFile().getMap(config.getMapName());
         if (map == null) {
             mcroguelike.getLogger().warning("Map not found: " + config.getMapName());
         }
@@ -184,7 +185,7 @@ public class PathFile extends FileProviderList<FileProvider<PathConfig>> {
         configs.put(pathId, config);
         
         // 更新路徑物件
-        AbstractsPath path = convertToPath(pathId, config);
+        AbstractPath path = convertToPath(pathId, config);
         paths.put(pathId, path);
         
     }
@@ -203,7 +204,7 @@ public class PathFile extends FileProviderList<FileProvider<PathConfig>> {
      * @param pathId 路徑ID
      * @return 路徑物件
      */
-    public AbstractsPath getPath(String pathId) {
+    public AbstractPath getPath(String pathId) {
         return paths.get(pathId);
     }
     
@@ -219,7 +220,7 @@ public class PathFile extends FileProviderList<FileProvider<PathConfig>> {
      * 獲取所有路徑物件
      * @return 路徑物件列表
      */
-    public java.util.Map<String, AbstractsPath> getAllPaths() {
+    public java.util.Map<String, AbstractPath> getAllPaths() {
         return paths;
     }
 } 

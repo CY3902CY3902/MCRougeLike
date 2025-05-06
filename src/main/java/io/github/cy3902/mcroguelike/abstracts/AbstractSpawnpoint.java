@@ -1,42 +1,59 @@
 package io.github.cy3902.mcroguelike.abstracts;
 
-import io.github.cy3902.mcroguelike.manager.spawn.SpawnPointManager;
 import org.bukkit.Location;
 import java.util.List;
-import java.util.ArrayList;
-import org.bukkit.entity.LivingEntity;
 
 /**
  * 生成點抽象類別
  * 定義了怪物生成點的基本屬性和行為
  */
-public abstract class AbstractSpawnpoint implements SpawnPointManager {
+public abstract class AbstractSpawnpoint {
 
-    protected List<AbstractsMob> mobs;
+    protected List<AbstractMob> mobs;
     protected int timeWait;
     protected int maxSpawnAmount; 
     protected int spawnCount;
-    protected List<AbstractsMob> abstractsMobs;
     protected final String name;
     protected int currentSpawns;
     protected boolean isSpawning;
     
-    public AbstractSpawnpoint(String name, int timeWait, int maxSpawnAmount, List<AbstractsMob> abstractsMobs) {
+    public AbstractSpawnpoint(String name, int timeWait, int maxSpawnAmount, List<AbstractMob> abstractsMobs) {
         this.name = name;
-        this.mobs = new ArrayList<>();
+        this.mobs = abstractsMobs;
         this.timeWait = timeWait;
         this.maxSpawnAmount = maxSpawnAmount;
         this.spawnCount = 0;
-        this.abstractsMobs = abstractsMobs;
         this.currentSpawns = 0;
         this.isSpawning = true;
     }
 
-    // Abstract method for spawning mobs
-    public abstract void spawnMob(Location location);
+    /**
+     * 檢查是否可以在指定位置生成怪物
+     * @param location 生成位置
+     * @return 是否可以生成
+     */
+    public boolean canSpawn(Location location) {
+        return isSpawning && currentSpawns < maxSpawnAmount;
+    }
+
+    /**
+     * 停止生成怪物
+     */
+    public void stopSpawning() {
+        isSpawning = false;
+    }
+
+    /**
+     * 重置生成點狀態
+     */
+    public void reset() {
+        isSpawning = true;
+        currentSpawns = 0;
+        spawnCount = 0;
+    }
 
     // Getters
-    public List<AbstractsMob> getMobs() {
+    public List<AbstractMob> getMobs() {
         return mobs;
     }
 
@@ -52,12 +69,17 @@ public abstract class AbstractSpawnpoint implements SpawnPointManager {
         return spawnCount;
     }
 
-    public List<AbstractsMob> getAbstractsMobs() {
-        return abstractsMobs;
+    public int getCurrentSpawns() {
+        return currentSpawns;
+    }
+
+    public void incrementCurrentSpawns() {
+        currentSpawns++;
+        spawnCount++;
     }
 
     // Setters
-    public void setMobs(List<AbstractsMob> mobs) {
+    public void setMobs(List<AbstractMob> mobs) {
         this.mobs = mobs;
     }
 
@@ -71,49 +93,6 @@ public abstract class AbstractSpawnpoint implements SpawnPointManager {
 
     public void setSpawnCount(int spawnCount) {
         this.spawnCount = spawnCount;
-    }
-
-    public void setAbstractsMobs(List<AbstractsMob> abstractsMobs) {
-        this.abstractsMobs = abstractsMobs;
-    }
-
-    public void incrementSpawnCount() {
-        this.spawnCount++;
-    }
-
-
-    public abstract Object getName();
-
-    /**
-     * 生成敵人
-     * @return 生成的敵人實體
-     */
-    @Override
-    public LivingEntity spawn(Location location) {
-        spawnMob(location);
-        incrementSpawnCount();
-        return mobs.get(mobs.size() - 1).getEntity();
-    }
-
-
-    @Override
-    public void stopSpawning() {
-        isSpawning = false;
-    }
-
-    @Override
-    public void reset() {
-        currentSpawns = 0;
-        isSpawning = true;
-    }
-
-
-    public int getCurrentSpawns() {
-        return currentSpawns;
-    }
-
-    public boolean isSpawning() {
-        return isSpawning;
     }
 }
 

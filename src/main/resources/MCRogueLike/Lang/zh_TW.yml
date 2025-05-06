@@ -42,6 +42,8 @@ room:
     next_page: '&a下一頁'
     page_info: '&a頁面 '
     create_new: '&a創建新房間'
+    create_new_spawnpoint: '&a創建新生成點'
+    delete_spawnpoint: '&c刪除生成點'
     room_name: '&a房間名稱'
     room_type: '&a房間類型'
     structure: '&a結構名稱'
@@ -72,17 +74,71 @@ room:
     room_deleted: '&c房間已刪除！'
     changes_saved: '&a更改已保存！'
     room_type_updated: '&a房間類型已更新為: '
-    move_to_spawn: '&e請移動到你想要設置的出生點位置，然後輸入 'confirm' 確認。'
-    cancel_spawn: '&e輸入 'cancel' 取消設置。'
+    move_to_spawn: "&e請移動到你想要設置的出生點位置，然後輸入 'confirm' 確認。"
+    cancel_spawn: "&e輸入 'cancel' 取消設置。"
     spawn_set: '&a出生點已設置為: '
     spawn_cancelled: '&c已取消設置出生點'
-    invalid_input: '&c無效的輸入。請輸入 'confirm' 確認或 'cancel' 取消。'
+    invalid_input: "&c無效的輸入。請輸入 'confirm' 確認或 'cancel' 取消。"
     room_exists: '&c該房間ID已存在！'
     room_created: '&a已創建新房間！'
     settings_updated: '&a已更新設置！'
     invalid_number: '&c請輸入有效的數值！'
     enter_value: '&e請輸入新的'
     config_not_found: '&c無法找到房間配置！'
+    confirm_delete: '&c確認刪除房間？輸入 "yes" 確認，其他任意輸入取消。'
+    delete_cancelled: '&a已取消刪除房間。'
+    invalid_setting: '&c無效的設置項！'
+    confirm: 'confirm'
+    cancel: 'cancel'
+    room_not_found: '&c找不到房間！'
+    mob_spawn_enter: '&e進入怪物生成點編輯模式'
+    mob_spawn: '&e怪物生成點'
+    location: '&7位置: '
+  type:
+    survival_desc: '玩家需要在指定時間內存活下來'
+    annihilation_desc: '玩家需要在時間內消滅指定數量的敵人'
+    defense_desc: '玩家需要防守特定位置不被敵人攻破'
+    sniper_desc: '玩家需要從遠處狙擊特定目標'
+  log:
+    cannot_get_room_id: '無法從物品中獲取房間ID'
+    got_room_id: '獲取到房間ID: %id%'
+    set_editing_player: '設置編輯玩家: %player% -> %room%'
+    current_editing_players: '當前編輯玩家列表: %list%'
+    editing_gui_player: '正在編輯GUI的玩家: %player%'
+    player_uuid: '玩家UUID: %uuid%'
+    editing_players_list: '編輯玩家列表: %list%'
+    got_room_id_from_gui: '獲取到的房間ID: %id%'
+    cannot_get_editing_room: '無法獲取正在編輯的房間ID'
 
+# 路徑GUI相關文字
+path:
+  gui:
+    title: '&b&lMCRogueLike &f路徑選擇'
+    selectable: '&a可選擇'
+    not_selectable: '&c不可選擇'
+    previous_page: '&e上一頁'
+    next_page: '&e下一頁'
+    page_info: '&6頁面 %current%/%total%'
+    node_name: '&b節點 %value%'
+    node_level: '&7等級: %level%'
+    special_node: '&c特殊節點'
+    room_info: '&7房間: %name%'
+    parent_nodes: '&7父節點:'
+    parent_node: '&7- 節點 %value%'
+    child_nodes: '&7子節點:'
+    child_node: '&7- 節點 %value%'
+    select_node_first: '&c請先選擇一個節點'
+    node_selected: '&a已選擇節點 %node%'
+    invalid_map: '&c無效的地圖'
+    invalid_room: '&c無效的房間'
+    invalid_map_location: '&c無效的地圖位置'
+    room_generated: '&a已生成房間 %room%'
+    invalid_map_room: '&c無效的地圖或房間'
+    map_not_found: '&c找不到地圖'
+    room_not_found: '&c找不到房間'
+
+# bossbar相關文字
+bossbar:
+  survival_time: '&a生存時間: %time%/%max_time%'
 
 

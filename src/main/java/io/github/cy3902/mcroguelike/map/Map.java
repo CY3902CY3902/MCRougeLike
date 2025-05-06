@@ -1,12 +1,12 @@
 package io.github.cy3902.mcroguelike.map;
 
-import io.github.cy3902.mcroguelike.abstracts.AbstractsMap;
+import io.github.cy3902.mcroguelike.abstracts.AbstractMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameRule;
 import org.bukkit.World;
 
-public class Map extends AbstractsMap {
+public class Map extends AbstractMap {
     public Map(String name, String structureSpawnPoint, int structureSpawnSeparation, boolean mobGriefing, boolean doDaylightCycle, 
                boolean doWeatherCycle, boolean keepInventory, boolean doMobSpawning, 
                boolean pvp, String weather, boolean allowExplosions) {

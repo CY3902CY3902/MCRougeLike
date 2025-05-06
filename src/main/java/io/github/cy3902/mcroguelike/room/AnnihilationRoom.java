@@ -1,7 +1,7 @@
 package io.github.cy3902.mcroguelike.room;
 
 import io.github.cy3902.mcroguelike.abstracts.AbstractSpawnpoint;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsRoom;
+import io.github.cy3902.mcroguelike.abstracts.AbstractRoom;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -12,7 +12,7 @@ import java.util.List;
  * 剿滅類型房間
  * 玩家需要在時間內消滅指定數量的敵人
  */
-public class AnnihilationRoom extends AbstractsRoom {
+public class AnnihilationRoom extends AbstractRoom {
     private int currentKills;                  // 當前擊殺數
     private int totalTargets;                  // 目標擊殺數
     private double earlyCompletionMultiplier;  // 提早完成的分數乘數
@@ -32,7 +32,7 @@ public class AnnihilationRoom extends AbstractsRoom {
             double earlyCompletionMultiplier,
             String playerSpawnPoint
     ) {
-        super(roomId, roomName, structureName, new HashMap<>(), minFloor, maxFloor, timeLimit, baseScore, playerSpawnPoint);
+        super(roomId, roomName, structureName, RoomType.Annihilation, new HashMap<>(), minFloor, maxFloor, timeLimit, baseScore, playerSpawnPoint);
         this.earlyCompletionMultiplier = earlyCompletionMultiplier;
         this.currentKills = 0;
         this.baseScore = baseScore;
@@ -45,23 +45,6 @@ public class AnnihilationRoom extends AbstractsRoom {
         }
     }
 
-    @Override
-    public void initialize(List<Player> players) {
-        // 設置玩家出生點
-        for (Player player : players) {
-            World world = player.getWorld();
-            player.teleport(getPlayerSpawnPoint(world));
-        }
-        // 重置遊戲狀態
-        reset();
-    }
-
-    @Override
-    public void reset() {
-        currentKills = 0;
-        isRunning = false;
-        isPaused = false;
-    }
 
     /**
      * 設定目標擊殺數
@@ -76,9 +59,6 @@ public class AnnihilationRoom extends AbstractsRoom {
      */
     public void addKill() {
         currentKills++;
-        if (currentKills >= totalTargets) {
-            getManager().stop(); // 達到目標擊殺數時結束房間
-        }
     }
 
     /**

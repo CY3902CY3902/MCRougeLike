@@ -1,6 +1,7 @@
 package io.github.cy3902.mcroguelike.gui;
 
 import io.github.cy3902.mcroguelike.MCRogueLike;
+import io.github.cy3902.mcroguelike.config.Lang;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -16,9 +17,12 @@ import java.util.WeakHashMap;
 public class PathGUIHandler implements Listener {
     private static PathGUIHandler instance;
     private final Map<Player, PathGUI> playerGUIs = new WeakHashMap<>();
+    private final Lang lang;
+    private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
 
     private PathGUIHandler() {
-        MCRogueLike.getInstance().getServer().getPluginManager().registerEvents(this, MCRogueLike.getInstance());
+        mcroguelike.getServer().getPluginManager().registerEvents(this, mcroguelike);
+        this.lang = mcroguelike.getLang();
     }
 
     public static PathGUIHandler getInstance() {
@@ -38,7 +42,7 @@ public class PathGUIHandler implements Listener {
 
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
-        if (!event.getView().getTitle().equals("Path Selection")) return;
+        if (!event.getView().getTitle().equals(lang.getMessage("path.gui.title"))) return;
         event.setCancelled(true);
 
         if (!(event.getWhoClicked() instanceof Player)) return;
@@ -60,20 +64,18 @@ public class PathGUIHandler implements Listener {
         
         // 處理節點選擇
         gui.handleNodeClick(player, clickedItem);
-        gui.displayNodes(event.getInventory(), player);
-        gui.addNavigationButtons(event.getInventory(), player);
     }
 
     @EventHandler
     public void onInventoryDrag(InventoryDragEvent event) {
-        if (event.getView().getTitle().equals("Path Selection")) {
+        if (event.getView().getTitle().equals(lang.getMessage("path.gui.title"))) {
             event.setCancelled(true);
         }
     }
 
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
-        if (!event.getView().getTitle().equals("Path Selection")) return;
+        if (!event.getView().getTitle().equals(lang.getMessage("path.gui.title"))) return;
         
         if (!(event.getPlayer() instanceof Player)) return;
         Player player = (Player) event.getPlayer();

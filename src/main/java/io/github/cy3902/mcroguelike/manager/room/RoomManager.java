@@ -1,6 +1,7 @@
 package io.github.cy3902.mcroguelike.manager.room;
 
-import io.github.cy3902.mcroguelike.abstracts.AbstractsRoom;
+import io.github.cy3902.mcroguelike.abstracts.AbstractRoom;
+import io.github.cy3902.mcroguelike.bossbar.bossbar;
 
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
@@ -35,10 +36,20 @@ public interface RoomManager {
     void stop();
 
     /**
+     * 結束房間
+     */
+    void end();
+
+    /**
+     * 結算房間
+     */
+    Integer calculate();
+
+    /**
      * 取得房間實例
      * @return 房間實例
      */
-    AbstractsRoom getRoom();
+    AbstractRoom getRoom();
 
     /**
      * 檢查房間是否正在運行
@@ -81,4 +92,28 @@ public interface RoomManager {
      * @return 敵人列表
      */
     List<LivingEntity> getActiveEnemies();
+
+    /**
+     * 設置bossbar
+     * @param bossbar bossbar
+     */
+    void setBossbar(bossbar bossbar);
+
+    /**
+     * 綁定玩家
+     * @param player 玩家
+     */
+    void bindPlayer(Player player);
+
+    /**
+     * 解綁玩家
+     * @param player 玩家
+     */
+    void unbindPlayer(Player player);
+
+    /**
+     * 設置結束回調接口
+     * @param callback 結束回調接口
+     */
+    void setOnEndCallback(Runnable callback);
 } 

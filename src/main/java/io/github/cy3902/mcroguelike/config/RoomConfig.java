@@ -3,6 +3,8 @@ package io.github.cy3902.mcroguelike.config;
 import java.util.List;
 import java.util.Map;
 
+import org.bukkit.Location;
+
 /**
  * 房間配置類
  * 用於存儲房間的配置信息
@@ -19,7 +21,7 @@ public class RoomConfig {
     private String playerSpawn;
     private int minFloor;
     private int maxFloor;
-    private List<Map<String, String>> spawnPoints;
+    private List<Map<String, String>> spawnpoints;
 
     /**
      * 默認構造函數
@@ -36,7 +38,7 @@ public class RoomConfig {
         this.playerSpawn = "0,64,0";
         this.minFloor = 1;
         this.maxFloor = 10;
-        this.spawnPoints = null;
+        this.spawnpoints = null;
     }
 
     /**
@@ -45,7 +47,7 @@ public class RoomConfig {
     public RoomConfig(String roomId, String name, String type, String structure, String description, 
                      int timeLimit, int baseScore, double earlyCompletionMultiplier, 
                      String playerSpawn, int minFloor, int maxFloor, 
-                     List<Map<String, String>> spawnPoints) {
+                     List<Map<String, String>> spawnpoints) {
         this.roomId = roomId;
         this.name = name;
         this.type = type;
@@ -57,7 +59,7 @@ public class RoomConfig {
         this.playerSpawn = playerSpawn;
         this.minFloor = minFloor;
         this.maxFloor = maxFloor;
-        this.spawnPoints = spawnPoints;
+        this.spawnpoints = spawnpoints;
     }
 
     // Getters
@@ -105,8 +107,8 @@ public class RoomConfig {
         return maxFloor;
     }
 
-    public List<Map<String, String>> getSpawnPoints() {
-        return spawnPoints;
+    public List<Map<String, String>> getSpawnpoints() {
+        return spawnpoints;
     }
 
     // Setters
@@ -154,7 +156,7 @@ public class RoomConfig {
         this.maxFloor = maxFloor;
     }
 
-    public void setSpawnPoints(List<Map<String, String>> spawnPoints) {
-        this.spawnPoints = spawnPoints;
+    public void setSpawnpoints(List<Map<String, String>> spawnpoints) {
+        this.spawnpoints = spawnpoints;
     }
 } 

@@ -1,4 +1,4 @@
-package io.github.cy3902.mcroguelike.manager.score;
+package io.github.cy3902.mcroguelike.manager.room;
 
 /**
  * 分數管理器介面

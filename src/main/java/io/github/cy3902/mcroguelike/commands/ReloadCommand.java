@@ -1,7 +1,7 @@
 package io.github.cy3902.mcroguelike.commands;
 
 import io.github.cy3902.mcroguelike.MCRogueLike;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsCommand;
+import io.github.cy3902.mcroguelike.abstracts.AbstractCommand;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
@@ -9,8 +9,9 @@ import java.util.List;
 /**
  * 處理重新加載插件的指令。
  */
-public class ReloadCommand extends AbstractsCommand {
-
+public class ReloadCommand extends AbstractCommand {
+    private final MCRogueLike mcRogueLike = MCRogueLike.getInstance();
+    
     /**
      * 初始化 ReloadCommand 實例。
      */
@@ -28,13 +29,13 @@ public class ReloadCommand extends AbstractsCommand {
     public void handle(CommandSender sender, String[] args) {
         try {
             // 重新載入插件
-            MCRogueLike.getInstance().reloadConfig();
+            mcRogueLike.reloadConfig();
             
             // 重新載入語言文件
-            MCRogueLike.getLang().reload();
+            mcRogueLike.getLang().reload();
             
             // 重新初始化插件
-            MCRogueLike.getInstance().initEssential();
+            mcRogueLike.initEssential();
             
             sender.sendMessage(lang.getMessage("reload_success"));
         } catch (Exception e) {

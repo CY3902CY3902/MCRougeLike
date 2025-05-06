@@ -9,14 +9,14 @@ import java.util.*;
  * AbstractsPath 是抽象路徑類別，定義了路徑的基本屬性和行為。
  * 包含了節點的基本結構和操作方法。
  */
-public abstract class AbstractsPath {
+public abstract class AbstractPath {
     protected final MCRogueLike mcRogueLike = MCRogueLike.getInstance();
     protected final String pathId;
     protected AbstractsNode root;
     protected final int totalNodes;
     protected final int maxBranches;
     protected final Map<Integer, List<AbstractsNode>> levelNodes;
-    protected AbstractsMap map;
+    protected AbstractMap map;
 
     /**
      * 建構子，初始化路徑類別
@@ -24,7 +24,7 @@ public abstract class AbstractsPath {
      * @param totalNodes 總節點數
      * @param maxBranches 最大分支數
      */
-    public AbstractsPath(String pathId, int totalNodes, int maxBranches) {
+    public AbstractPath(String pathId, int totalNodes, int maxBranches) {
         this.pathId = pathId;
         this.totalNodes = totalNodes;
         this.maxBranches = maxBranches;
@@ -32,6 +32,7 @@ public abstract class AbstractsPath {
         this.root = null;
         this.map = null;
     }
+
 
     /**
      * 獲取路徑ID
@@ -46,10 +47,6 @@ public abstract class AbstractsPath {
      */
     public abstract void generateTree();
 
-    /**
-     * 計算節點層級
-     */
-    protected abstract void calculateNodeLevels();
 
     /**
      * 獲取隨機的分支數
@@ -69,7 +66,7 @@ public abstract class AbstractsPath {
      * @param special 新節點是否為特殊節點
      * @return 返回一個新的Node實例
      */
-    protected abstract AbstractsNode createNode(int i, int level, boolean special);
+    protected abstract AbstractsNode createNode(int i, int level, boolean special, boolean isCompleted);
 
 
     /**
@@ -99,10 +96,18 @@ public abstract class AbstractsPath {
     }
 
     /**
+     * 設置根節點
+     * @param node 根節點
+     */
+    public void setRoot(AbstractsNode node) {
+        this.root = node;
+    }
+
+    /**
      * 獲取地圖
      * @return 地圖
      */
-    public AbstractsMap getMap() {
+    public AbstractMap getMap() {
         return map;
     }
 
@@ -110,39 +115,57 @@ public abstract class AbstractsPath {
      * 設置地圖
      * @param map 地圖
      */
-    public void setMap(AbstractsMap map) {
+    public void setMap(AbstractMap map) {
         this.map = map;
     }
+
+
+    /**
+     * 從json 轉換
+     * @return json
+     */
+    public abstract String convertPathToJson();
+
+
+    /**
+     * 從json 轉換
+     * @param json json
+     */
+    public abstract boolean convertPathFromJson(String json);
+
+
 
     /**
      * 節點內部類，用於表示路徑中的節點
      */
-    public static class AbstractsNode {
+    public class AbstractsNode {
         private final int value;
         private int level;
         private final List<AbstractsNode> parents;
         private final List<AbstractsNode> children;
         private boolean special;
-        private AbstractsRoom room;
+        private AbstractRoom room;
+        private boolean isCompleted;
 
         /**
          * 建構子，初始化節點
          * @param value 節點的值
          */
-        public AbstractsNode(int value, int level, boolean special) {
+        public AbstractsNode(int value, int level, boolean special, boolean isCompleted) {
             this.value = value;
             this.level = level;
             this.parents = new ArrayList<>();
             this.children = new ArrayList<>();
             this.special = special;
-            this.room = RandomRoomByPath(level);
+            this.room = null;
+            this.isCompleted = isCompleted;
         }
 
         /**
          * 設置節點的房間
          * @param room 要設置的房間
          */
-        public void setRoom(AbstractsRoom room) {
+        public void setRoom(AbstractRoom room) {
             this.room = room;
         }
 
@@ -150,7 +173,7 @@ public abstract class AbstractsPath {
          * 獲取節點的房間
          * @return 節點的房間
          */
-        public AbstractsRoom getRoom() {
+        public AbstractRoom getRoom() {
             return room;
         }
 
@@ -158,7 +181,7 @@ public abstract class AbstractsPath {
          * 隨機獲取節點的房間
          * @return 節點的房間
          */
-        public AbstractsRoom RandomRoomByPath(int level) {
+        public AbstractRoom RandomRoomByPath(int level) {
             return null;
         }
 
@@ -225,6 +248,22 @@ public abstract class AbstractsPath {
          */
         public void setSpecial(boolean special) {
             this.special = special;
+        }
+
+        /**
+         * 獲取節點是否已完成
+         * @return 如果已完成則返回true
+         */
+        public boolean isCompleted() {
+            return isCompleted;
+        }
+
+        /**
+         * 設置節點是否已完成
+         * @param isCompleted 要設置的已完成狀態
+         */
+        public void setCompleted(boolean isCompleted) {
+            this.isCompleted = isCompleted;
         }
     }
 }

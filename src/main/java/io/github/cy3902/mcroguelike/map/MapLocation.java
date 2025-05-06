@@ -3,24 +3,22 @@ package io.github.cy3902.mcroguelike.map;
 import org.bukkit.Location;
 import org.bukkit.World;
 import io.github.cy3902.mcroguelike.MCRogueLike;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsMap;
-import io.github.cy3902.mcroguelike.utils.LocationUtils;
+import io.github.cy3902.mcroguelike.abstracts.AbstractMap;
 
 /**
  * MapLocation 類別負責管理地圖的位置信息
  * 提供位置信息的讀取、儲存和轉換功能
  */
 public class MapLocation {
-    private final AbstractsMap map;
+    private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
+    private final AbstractMap map;
     private Location location;
     private static final String TABLE_NAME = "mcroguelike_map_location";
-    private static final String DEFAULT_LOCATION_FORMAT = "%s,%f,%f,%f,%f,%f";
-
     /**
      * 建構子
      * @param map 關聯的地圖對象
      */
-    public MapLocation(AbstractsMap map) {
+    public MapLocation(AbstractMap map) {
         this.map = map;
         this.location = loadLocation();
     }
@@ -60,10 +58,10 @@ public class MapLocation {
      * @return 連接是否有效
      */
     private boolean ensureDatabaseConnection() {
-        if (!MCRogueLike.getSql().isConnectionValid()) {
-            MCRogueLike.getSql().connect();
+        if (!mcroguelike.getSql().isConnectionValid()) {
+            mcroguelike.getSql().connect();
         }
-        return MCRogueLike.getSql().isConnectionValid();
+        return mcroguelike.getSql().isConnectionValid();
     }
 
     /**
@@ -71,8 +69,8 @@ public class MapLocation {
      * @return 位置信息字符串
      */
     private String queryLocationFromDatabase() {
-        return MCRogueLike.getSql().select(
-            "SELECT location FROM " + TABLE_NAME + " WHERE map = ?",
+        return mcroguelike.getSql().select(
+            "SELECT X, Y, Z FROM " + TABLE_NAME + " WHERE map = ?",
             new String[]{map.getName()}
         );
     }
@@ -114,15 +112,11 @@ public class MapLocation {
             return;
         }
 
-        String locationString = serializeLocation();
-        if (locationString == null) {
-            return;
-        }
 
         if (isLocationExistsInDatabase()) {
-            updateLocationInDatabase(locationString);
+            updateLocationInDatabase(location.getBlockX(), location.getBlockY(), location.getBlockZ());
         } else {
-            insertLocationToDatabase(locationString);
+            insertLocationToDatabase(location.getBlockX(), location.getBlockY(), location.getBlockZ());
         }
     }
 
@@ -138,10 +132,10 @@ public class MapLocation {
      * 更新數據庫中的位置信息
      * @param locationString 位置字符串
      */
-    private void updateLocationInDatabase(String locationString) {
-        MCRogueLike.getSql().update(
-            "UPDATE " + TABLE_NAME + " SET location = ? WHERE map = ?",
-            new String[]{locationString, map.getName()}
+    private void updateLocationInDatabase(int locationX, int locationY, int locationZ) {
+        mcroguelike.getSql().update(
+            "UPDATE " + TABLE_NAME + " SET X = ?, Y = ?, Z = ? WHERE map = ?",
+            new String[]{String.valueOf(locationX), String.valueOf(locationY), String.valueOf(locationZ), map.getName()}
         );
     }
 
@@ -149,30 +143,13 @@ public class MapLocation {
      * 插入新的位置信息到數據庫
      * @param locationString 位置字符串
      */
-    private void insertLocationToDatabase(String locationString) {
-        MCRogueLike.getSql().insert(
-            "INSERT INTO " + TABLE_NAME + " (map, location) VALUES (?, ?)",
-            new String[]{map.getName(), locationString}
+    private void insertLocationToDatabase(int locationX, int locationY, int locationZ) {
+        mcroguelike.getSql().insert(
+            "INSERT INTO " + TABLE_NAME + " (map, X, Y, Z) VALUES (?, ?, ?, ?)",
+            new String[]{map.getName(), String.valueOf(locationX), String.valueOf(locationY), String.valueOf(locationZ)}
         );
     }
 
-    /**
-     * 序列化Location對象為字符串
-     * @return 序列化後的位置字符串
-     */
-    private String serializeLocation() {
-        if (location == null) {
-            return null;
-        }
-        return String.format(DEFAULT_LOCATION_FORMAT,
-            location.getWorld().getName(),
-            location.getX(),
-            location.getY(),
-            location.getZ(),
-            location.getYaw(),
-            location.getPitch()
-        );
-    }
 
     /**
      * 設置新的位置

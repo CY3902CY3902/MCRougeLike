@@ -3,7 +3,8 @@ type: "Defense"
 structure: "defense_structure"
 description: "防守房間"
 time_limit: 900  # 15分鐘
-baseScore: 300
+base_score: 300
+early_completion_multiplier: 1.5
 player_spawn: "0,64,0"  # 玩家出生點
 floor:
   min: 1

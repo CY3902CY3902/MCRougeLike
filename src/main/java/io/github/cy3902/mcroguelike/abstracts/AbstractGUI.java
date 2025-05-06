@@ -8,7 +8,7 @@ import org.bukkit.inventory.ItemStack;
 /**
  * AbstractsGUI 是一個抽象類別，用於創建和管理遊戲中的GUI介面
  */
-public abstract class AbstractsGUI implements InventoryHolder {
+public abstract class AbstractGUI implements InventoryHolder {
     protected Inventory inventory;
     protected String title;
     protected int size;
@@ -19,7 +19,7 @@ public abstract class AbstractsGUI implements InventoryHolder {
      * @param title GUI的標題
      * @param size GUI的大小（必須是9的倍數）
      */
-    public AbstractsGUI(String title, int size) {
+    public AbstractGUI(String title, int size) {
         this.title = title;
         this.size = size;
         this.inventory = Bukkit.createInventory(this, size, title);

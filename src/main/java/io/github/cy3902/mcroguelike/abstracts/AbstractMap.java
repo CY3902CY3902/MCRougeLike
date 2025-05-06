@@ -13,8 +13,8 @@ import java.util.List;
 /**
  * AbstractsMap 是抽象地圖類別，用於管理遊戲地圖的各種設定和規則
  */
-public class AbstractsMap {
-    private static final List<AbstractsMap> maps = new ArrayList<>();
+public class AbstractMap {
+    private static final List<AbstractMap> maps = new ArrayList<>();
     protected String name;                // 地圖名稱
     protected Location structureSpawnPoint;          // 出生點
     protected int structureSpawnSeparation;     // 結構物生成間隔
@@ -41,7 +41,7 @@ public class AbstractsMap {
      * @param weather 天氣設定
      * @param allowExplosions 爆炸允許設定
      */
-    protected AbstractsMap(String name, String structureSpawnPoint, int structureSpawnSeparation, boolean mobGriefing, boolean doDaylightCycle, 
+    protected AbstractMap(String name, String structureSpawnPoint, int structureSpawnSeparation, boolean mobGriefing, boolean doDaylightCycle, 
                          boolean doWeatherCycle, boolean keepInventory, boolean doMobSpawning, 
                          boolean pvp, String weather, boolean allowExplosions) {
         this.name = name;

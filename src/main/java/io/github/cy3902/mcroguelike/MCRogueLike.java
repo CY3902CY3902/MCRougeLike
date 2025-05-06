@@ -1,9 +1,10 @@
 package io.github.cy3902.mcroguelike;
 
 import io.github.cy3902.mcroguelike.abstracts.AbstractSpawnpoint;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsMap;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsPath;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsSQL;
+import io.github.cy3902.mcroguelike.abstracts.AbstractMap;
+import io.github.cy3902.mcroguelike.abstracts.AbstractPath;
+import io.github.cy3902.mcroguelike.abstracts.AbstractRoom;
+import io.github.cy3902.mcroguelike.abstracts.AbstractSQL;
 import io.github.cy3902.mcroguelike.commands.Commands;
 import io.github.cy3902.mcroguelike.config.ConfigFile;
 import io.github.cy3902.mcroguelike.config.Lang;
@@ -11,6 +12,10 @@ import io.github.cy3902.mcroguelike.files.MapFile;
 import io.github.cy3902.mcroguelike.files.PathFile;
 import io.github.cy3902.mcroguelike.files.RoomFile;
 import io.github.cy3902.mcroguelike.files.SpawnpointFile;
+import io.github.cy3902.mcroguelike.manager.game.GameStartManager;
+import io.github.cy3902.mcroguelike.path.Path;
+import io.github.cy3902.mcroguelike.room.AnnihilationRoom;
+import io.github.cy3902.mcroguelike.room.SurvivalRoom;
 import io.github.cy3902.mcroguelike.utils.FileUtils;
 import io.github.cy3902.mcroguelike.utils.MsgUtils;
 import org.bukkit.Bukkit;
@@ -18,22 +23,33 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.logging.Level;
 
 public final class MCRogueLike extends JavaPlugin {
     private static MCRogueLike mcRogueLike;
-    private static Lang lang;
-    private static MapFile mapFile;
-    private static PathFile pathFile;
-    private static RoomFile roomFile;
-    private static SpawnpointFile spawnpointFile;
-    private static String DATABASE_URL;
-    private static Lang.LangType langType;
-    private static AbstractsSQL sql;
-    private static ConfigFile configFile;
+    private Lang lang;
+    private MapFile mapFile;
+    private PathFile pathFile;
+    private RoomFile roomFile;
+    private SpawnpointFile spawnpointFile;
+
+    private Lang.LangType langType;
+    private AbstractSQL sql;
+    private ConfigFile configFile;
 
     private final MsgUtils msgUtils = new MsgUtils(this);
+    private final List<GameStartManager> gameStartManagers = new ArrayList<>();
+
+    //註冊Path
+    private HashMap<String, Class<? extends AbstractPath>> pathRegister = new HashMap<>();
+    //註冊Room
+    private HashMap<String, Class<? extends AbstractRoom>> roomRegister = new HashMap<>();
+    //註冊Spawnpoint
+    private HashMap<String, Class<? extends AbstractSpawnpoint>> spawnpointRegister = new HashMap<>();
+
 
 
     public MCRogueLike() {
@@ -71,7 +87,8 @@ public final class MCRogueLike extends JavaPlugin {
         File pathFolder = new File(dataFolder, "Path");
         File roomFolder = new File(dataFolder, "Room");
         File spawnpointFolder = new File(dataFolder, "Spawnpoint");
-        File schematicsFolder = new File(dataFolder, "schematics");
+        File schematicsFolder = new File(dataFolder, "Schematics");
+        File playerPathFolder = new File(dataFolder, "PlayerPath");
 
         // Create and populate folders
         if (!langFolder.exists()) {
@@ -102,10 +119,16 @@ public final class MCRogueLike extends JavaPlugin {
             spawnpointFolder.mkdirs();
             FileUtils.copyResourceFolder(this, "MCRogueLike/Spawnpoint", spawnpointFolder);
         }   
+        if (!playerPathFolder.exists()) {
+            playerPathFolder.mkdirs();
+        }
 
 
         // Initialize configuration files
-
+        configFile = new ConfigFile(this);
+        configFile.reload();
+        lang = new Lang("Lang", langType + ".yml");
+        lang.reload();
         mapFile = new MapFile();
         mapFile.reloadAll();
         pathFile = new PathFile();
@@ -115,16 +138,17 @@ public final class MCRogueLike extends JavaPlugin {
         spawnpointFile = new SpawnpointFile();
         spawnpointFile.reloadAll();
 
+        //註冊Path
+        pathRegister.put("Path", Path.class);
 
-        configFile = new ConfigFile(this);
-        configFile.reload();
+        //註冊Room
+        roomRegister.put("Survival", SurvivalRoom.class);
+        roomRegister.put("Annihilation", AnnihilationRoom.class);
 
-        lang = new Lang("Lang", langType + ".yml");
-        lang.reload();
 
-        
+
         // Load and apply map rules
-        for (AbstractsMap map : mapFile.getAllMaps().values()) {
+        for (AbstractMap map : mapFile.getAllMaps().values()) {
             map.applyMapRules();
         }
 
@@ -142,11 +166,11 @@ public final class MCRogueLike extends JavaPlugin {
         return mcRogueLike;
     }
 
-    public static Lang.LangType getLangType() {
+    public Lang.LangType getLangType() {
         return langType;
     }
 
-    public static Lang getLang() {
+    public Lang getLang() {
         return lang;
     }
 
@@ -160,16 +184,16 @@ public final class MCRogueLike extends JavaPlugin {
         getLogger().log(level, msg);
     }
 
-    public static AbstractsSQL getSql() {
+    public AbstractSQL getSql() {
         return sql;
     }
 
-    public static void setLangType(Lang.LangType langType) {
-        MCRogueLike.langType = langType;
+    public void setLangType(Lang.LangType langType) {
+        this.langType = langType;
     }
 
-    public static void setSql(AbstractsSQL sql) {
-        MCRogueLike.sql = sql;
+    public void setSql(AbstractSQL sql) {
+        this.sql = sql;
     }
 
 
@@ -196,6 +220,29 @@ public final class MCRogueLike extends JavaPlugin {
     public SpawnpointFile getSpawnpointFile() {
         return spawnpointFile;
     }
-    
+
+    public List<GameStartManager> getGameStartManagers() {
+        return gameStartManagers;
+    }
+
+    public void addGameStartManager(GameStartManager gameStartManager) {
+        gameStartManagers.add(gameStartManager);
+    }
+
+    public void removeGameStartManager(GameStartManager gameStartManager) {
+        gameStartManagers.remove(gameStartManager);
+    }
+
+    public void clearGameStartManagers() {
+        gameStartManagers.clear();
+    }
+
+    public HashMap<String, Class<? extends AbstractPath>> getPathRegister() {
+        return pathRegister;
+    }
+
+    public HashMap<String, Class<? extends AbstractRoom>> getRoomRegister() {
+        return roomRegister;
+    }
     
 }

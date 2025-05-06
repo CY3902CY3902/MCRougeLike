@@ -2,28 +2,47 @@ package io.github.cy3902.mcroguelike.path;
 
 import java.util.*;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
-import io.github.cy3902.mcroguelike.abstracts.AbstractsPath;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsRoom;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import io.github.cy3902.mcroguelike.abstracts.AbstractPath;
+import io.github.cy3902.mcroguelike.abstracts.AbstractRoom;
 import io.github.cy3902.mcroguelike.MCRogueLike;
-import io.github.cy3902.mcroguelike.files.PathFile;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsMap;
+import io.github.cy3902.mcroguelike.abstracts.AbstractMap;
 /**
  * Path類別擴展了AbstractsPath，用於生成具有指定節點數量和同階層分支限制的樹狀結構。
  */
-public class Path extends AbstractsPath {
+public class Path extends AbstractPath {
 
     private final MCRogueLike mcRogueLike = MCRogueLike.getInstance();
-    private final List<String> bossRoomNames;
-    private final int maxNodes;
-    private final int maxBranches;
-    private final int maxHeight;
-    private final double specialNodeProbability;
-    private final List<AbstractsNode> nodes;
-    private final String name;
-    private final List<String> roomNames;
+    private List<String> bossRoomIds;
+    private int maxNodes;
+    private int maxBranches;
+    private int maxHeight;
+    private double specialNodeProbability;
+    private List<AbstractsNode> nodes;
+    private String name;
+    private List<String> roomIds;
     private static final Random RANDOM = new Random();
     
+    /**
+     * 建構子，初始化Path類別，使用設定文件中的參數
+     */
+    public Path() {
+        super("default", 10, 10);
+        this.name = "default";
+        this.map = null;
+        this.maxNodes = 0;
+        this.maxBranches = 0;
+        this.maxHeight = 0;
+        this.specialNodeProbability = 0.5;
+        this.nodes = new ArrayList<>();
+        this.roomIds = new ArrayList<>();
+        this.bossRoomIds = new ArrayList<>();
+    }
+
     /**
      * 建構子，初始化Path類別，使用設定文件中的參數
      *
@@ -34,11 +53,11 @@ public class Path extends AbstractsPath {
      * @param maxBranches 最大分支數
      * @param maxHeight 最大高度
      * @param specialNodeProbability 特殊節點概率
-     * @param roomNames 房間名稱列表
-     * @param bossRoomNames Boss房間名稱列表
+     * @param roomIds 房間ID列表
+     * @param bossRoomIds Boss房間ID列表
      */
-    public Path(String pathId, String name, AbstractsMap map, int maxNodes, int maxBranches, int maxHeight, 
-                double specialNodeProbability, List<String> roomNames, List<String> bossRoomNames) {
+    public Path(String pathId, String name, AbstractMap map, int maxNodes, int maxBranches, int maxHeight, 
+                double specialNodeProbability, List<String> roomIds, List<String> bossRoomIds) {
         super(pathId, maxNodes, maxBranches);
         this.name = name;
         this.map = map;
@@ -47,15 +66,15 @@ public class Path extends AbstractsPath {
         this.maxHeight = maxHeight;
         this.specialNodeProbability = specialNodeProbability;
         this.nodes = new ArrayList<>();
-        this.roomNames = new ArrayList<>(roomNames);
-        this.bossRoomNames = new ArrayList<>(bossRoomNames);
+        this.roomIds = new ArrayList<>(roomIds);
+        this.bossRoomIds = new ArrayList<>(bossRoomIds);
         
     }
 
 
     public class Node extends AbstractsNode {
-        public Node(int value, int level, boolean special) {
-            super(value, level, special);
+        public Node(int value, int level, boolean special, boolean isCompleted) {
+            super(value, level, special, isCompleted);
         }
         /** 
          * 獲取隨機的房間
@@ -63,20 +82,20 @@ public class Path extends AbstractsPath {
          */
         
         @Override
-        public AbstractsRoom RandomRoomByPath(int level) {
+        public AbstractRoom RandomRoomByPath(int level) {
             List<String> validRooms = new ArrayList<>();
-            for (String roomName : roomNames) {
-                AbstractsRoom room = mcRogueLike.getRoomFile().getRoom(roomName);
+            for (String roomId : roomIds) {
+                AbstractRoom room = mcRogueLike.getRoomFile().getRoom(roomId);
                 mcRogueLike.info("room: " + room, Level.INFO);
-                mcRogueLike.info("roomName: " + roomName, Level.INFO);
-
+                mcRogueLike.info("roomId: " + roomId, Level.INFO);
+                
                 if(room == null) {
-                    mcRogueLike.info("room is null: " + roomName, Level.INFO);
+                    mcRogueLike.info("room is null: " + roomId, Level.INFO);
                     continue;
                 }
                 mcRogueLike.info("room.getMinFloor() <= level: " + room.getMinFloor() + " <= " + level, Level.INFO);
                 if(room.getMinFloor() <= level && room.getMaxFloor() >= level) {
-                    validRooms.add(roomName);
+                    validRooms.add(roomId);
                 }
             }
 
@@ -87,6 +106,7 @@ public class Path extends AbstractsPath {
             
             return mcRogueLike.getRoomFile().getRoom(validRooms.get(RANDOM.nextInt(validRooms.size())));
         }
+
     }
 
 
@@ -120,7 +140,7 @@ public class Path extends AbstractsPath {
         nodes.clear();
         
         // 創建根節點
-        Node root = new Node(0, 0, false);
+        Node root = createNode(0, 0, false, false);
         nodes.add(root);
         this.root = root;  // 設置根節點
 
@@ -144,7 +164,7 @@ public class Path extends AbstractsPath {
             
             // 生成這一層的節點
             for (int i = 0; i < levelCount; i++) {
-                Node child = new Node(nodes.size(), level, RANDOM.nextDouble() < specialNodeProbability);
+                Node child = createNode(nodes.size(), level, RANDOM.nextDouble() < specialNodeProbability, false);
                 nodes.add(child);
                 levelNodes.add(child);
             }
@@ -174,7 +194,8 @@ public class Path extends AbstractsPath {
         
         // 添加最終節點
         if (nodes.size() < maxNodes) {
-            Node finalNode = new Node(nodes.size(), maxHeight, true);
+            Node finalNode = createNode(nodes.size(), maxHeight, false, false);
+            finalNode.setRoom(finalNode.RandomRoomByPath(maxHeight));
             nodes.add(finalNode);
             
             // 將所有上一層的節點連接到最終節點
@@ -214,18 +235,154 @@ public class Path extends AbstractsPath {
      * 根據指定的索引創建一個新節點。
      *
      * @param i 新節點的索引。
+     * @param level 新節點的層級。
+     * @param special 新節點是否為特殊節點。
+     * @param isCompleted 新節點是否已完成。
      * @return 返回一個新的Node實例。
      */
     @Override
-    protected AbstractsNode createNode(int i, int level, boolean special) {
-        return new Node(i, level, special);
+    protected Node createNode(int i, int level, boolean special, boolean isCompleted) {
+        Node node = new Node(i, level, special, isCompleted);
+        node.setRoom(node.RandomRoomByPath(level));
+        return node;
     }
 
 
     @Override
-    protected void calculateNodeLevels() {
-        // 層級已經在生成時設置，不需要重新計算
+    public boolean convertPathFromJson(String json) {
+        JSONObject jsonObject = new JSONObject(json);
+        
+        // 創建節點映射
+        Map<Integer, Node> nodeMap = new HashMap<>();
+        JSONArray nodesArray = jsonObject.getJSONArray("nodes");
+
+        this.map = mcRogueLike.getMapFile().getMap(jsonObject.getString("map"));
+        this.maxNodes = jsonObject.getInt("maxNodes");
+        this.maxBranches = jsonObject.getInt("maxBranches");
+        this.maxHeight = jsonObject.getInt("maxHeight");
+        this.specialNodeProbability = jsonObject.getDouble("specialNodeProbability");
+        this.roomIds = jsonObject.getJSONArray("roomIds").toList().stream().map(Object::toString).collect(Collectors.toList());
+        this.bossRoomIds = jsonObject.getJSONArray("bossRoomIds").toList().stream().map(Object::toString).collect(Collectors.toList());
+
+        try {
+            // 第一遍：創建所有節點
+            for (int i = 0; i < nodesArray.length(); i++) {
+                JSONObject nodeJson = nodesArray.getJSONObject(i);
+                int nodeId = nodeJson.getInt("id");
+                int level = nodeJson.getInt("level");
+                boolean special = nodeJson.getBoolean("special");
+                boolean isCompleted = nodeJson.getBoolean("isCompleted");
+
+                Node node;
+                node = new Node(nodeId, level, special, isCompleted);
+                
+                
+                // 設置房間
+                if (nodeJson.has("roomId")) {
+                    String roomId = nodeJson.getString("roomId");
+                    AbstractRoom room = mcRogueLike.getRoomFile().getRoom(roomId);
+                    if (room != null) {
+                        node.setRoom(room);
+                    }else{
+                        node.setRoom(node.RandomRoomByPath(level));
+                    }
+                }
+                
+                nodeMap.put(nodeId, node);
+                
+                // 如果是根節點，設置為路徑的根節點
+                if (level == 0) {
+                    root = node;
+                }else{
+                    nodes.add(node);
+                }
+            }
+            
+            // 第二遍：建立節點關係
+            for (int i = 0; i < nodesArray.length(); i++) {
+                JSONObject nodeJson = nodesArray.getJSONObject(i);
+                int nodeId = nodeJson.getInt("id");
+                AbstractPath.AbstractsNode node = nodeMap.get(nodeId);
+                
+                // 建立父節點關係
+                JSONArray parentIds = nodeJson.getJSONArray("parentIds");
+                for (int j = 0; j < parentIds.length(); j++) {
+                    int parentId = parentIds.getInt(j);
+                    AbstractPath.AbstractsNode parent = nodeMap.get(parentId);
+                    if (parent != null) {
+                        node.getParents().add(parent);
+                        parent.getChildren().add(node);
+                    }
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
     }
+
+    /**
+     * 將路徑轉換為 JSON 字符串
+     * @param path 要轉換的路徑
+     * @return JSON 字符串
+     */
+    @Override
+    public String convertPathToJson() {
+        JSONObject json = new JSONObject();
+        json.put("pathType", this.getClass().getSimpleName());
+        json.put("pathId", this.getPathId());
+        
+        // 根據路徑類型保存特定屬性
+        if (this instanceof Path) {
+            Path concretePath = (Path) this;
+            json.put("name", concretePath.getName());
+            json.put("maxNodes", concretePath.getMaxNodes());
+            json.put("maxBranches", concretePath.getMaxBranches());
+            json.put("maxHeight", concretePath.getMaxHeight());
+            json.put("specialNodeProbability", concretePath.getSpecialNodeProbability());
+            json.put("roomIds", new JSONArray(concretePath.getRoomIds()));
+            json.put("bossRoomIds", new JSONArray(concretePath.getBossRoomIds()));
+            json.put("map", concretePath.getMap().getMapLocation().getLocation().getWorld().getName());
+        }
+        
+        // 保存節點數據
+        JSONArray nodesArray = new JSONArray();
+        Map<Integer, List<AbstractPath.AbstractsNode>> allNodes = this.getAllLevelNodes();
+        for (List<AbstractPath.AbstractsNode> levelNodes : allNodes.values()) {
+            for (AbstractPath.AbstractsNode node : levelNodes) {
+                JSONObject nodeJson = new JSONObject();
+                nodeJson.put("id", node.getValue());
+                nodeJson.put("level", node.getLevel());
+                nodeJson.put("special", node.isSpecial());
+                nodeJson.put("isCompleted", node.isCompleted());
+                if (node.getRoom() != null) {
+                    nodeJson.put("roomId", node.getRoom().getRoomId());
+                }
+                
+                // 保存父節點ID
+                JSONArray parentIds = new JSONArray();
+                for (AbstractPath.AbstractsNode parent : node.getParents()) {
+                    parentIds.put(parent.getValue());
+                }
+                nodeJson.put("parentIds", parentIds);
+                
+                // 保存子節點ID
+                JSONArray childIds = new JSONArray();
+                for (AbstractPath.AbstractsNode child : node.getChildren()) {
+                    childIds.put(child.getValue());
+                }
+                nodeJson.put("childIds", childIds);
+                
+                nodesArray.put(nodeJson);
+            }
+        }
+        json.put("nodes", nodesArray);
+        
+        return json.toString();
+    }
+
+
+
 
     /**
      * 輸出所有節點及其父節點關係
@@ -312,23 +469,23 @@ public class Path extends AbstractsPath {
      * 獲取房間名稱列表
      * @return 房間名稱列表
      */
-    public List<String> getRoomNames() {
-        return roomNames;
+    public List<String> getRoomIds() {
+        return roomIds;
     }
 
     /**
      * 獲取Boss房間名稱列表
      * @return Boss房間名稱列表
      */
-    public List<String> getBossRoomNames() {
-        return bossRoomNames;
+    public List<String> getBossRoomIds() {
+        return bossRoomIds;
     }
 
     /**
      * 獲取地圖
      * @return 地圖名稱
      */
-    public AbstractsMap getMap() {
+    public AbstractMap getMap() {
         return map;
     }
 

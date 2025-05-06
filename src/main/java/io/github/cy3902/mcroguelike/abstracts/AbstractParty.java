@@ -3,12 +3,12 @@ package io.github.cy3902.mcroguelike.abstracts;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AbstractsParty {
+public class AbstractParty {
     protected String name;
     protected List<String> members = new ArrayList<>();
     protected String leader;
 
-    public AbstractsParty(String name) {
+    public AbstractParty(String name) {
         this.name = name;
     }
 

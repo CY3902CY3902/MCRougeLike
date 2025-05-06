@@ -32,7 +32,7 @@ public class FileUtils {
 
         // 獲取 JAR 檔案的路徑
         String jarPath = plugin.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
-        jarPath = java.net.URLDecoder.decode(jarPath, StandardCharsets.UTF_8);
+        jarPath = java.net.URLDecoder.decode(jarPath, "UTF-8");
 
         // 使用 JarFile 讀取 JAR 檔案
         try (JarFile jar = new JarFile(jarPath)) {
@@ -93,7 +93,7 @@ public class FileUtils {
         try {
             // 輸出 JAR 文件路徑
             String jarPath = plugin.getClass().getProtectionDomain().getCodeSource().getLocation().getPath();
-            jarPath = java.net.URLDecoder.decode(jarPath, StandardCharsets.UTF_8);
+            jarPath = java.net.URLDecoder.decode(jarPath, "UTF-8");
             plugin.getLogger().info("JAR 文件路徑: " + jarPath);
 
             // 使用 JarFile 讀取 JAR 文件

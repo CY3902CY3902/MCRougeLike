@@ -1,9 +1,11 @@
 package io.github.cy3902.mcroguelike.commands;
 
 import io.github.cy3902.mcroguelike.MCRogueLike;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsCommand;
+import io.github.cy3902.mcroguelike.abstracts.AbstractCommand;
 import io.github.cy3902.mcroguelike.config.Lang;
 import io.github.cy3902.mcroguelike.gui.RoomGUIHandler;
+import io.github.cy3902.mcroguelike.gui.SpawnpointGUIHandler;
+import io.github.cy3902.mcroguelike.spawnpoint.Spawnpoint;
 import io.github.cy3902.mcroguelike.gui.PathGUIHandler;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -24,8 +26,8 @@ import java.util.Map;
 public class Commands implements CommandExecutor, TabCompleter {
 
     protected final MCRogueLike mcroguelike = MCRogueLike.getInstance();
-    protected final Lang lang = MCRogueLike.getLang();
-    protected static LinkedHashMap<String, AbstractsCommand> commands = new LinkedHashMap<>();
+    protected final Lang lang = mcroguelike.getLang();
+    protected static LinkedHashMap<String, AbstractCommand> commands = new LinkedHashMap<>();
 
     /**
      * 註冊所有支持的指令及其處理類別。
@@ -39,13 +41,14 @@ public class Commands implements CommandExecutor, TabCompleter {
         // 註冊GUI處理器    
         RoomGUIHandler.getInstance();
         PathGUIHandler.getInstance();
+        SpawnpointGUIHandler.getInstance();
     }
 
     /**
      * 註冊單個命令
      * @param command 要註冊的命令
      */
-    public static void registerCommand(AbstractsCommand command) {
+    public static void registerCommand(AbstractCommand command) {
         commands.put(command.getCommand(), command);
     }
 
@@ -68,7 +71,7 @@ public class Commands implements CommandExecutor, TabCompleter {
         }
 
         String subCommand = strings[0].toLowerCase();
-        AbstractsCommand cmd = commands.get(subCommand);
+        AbstractCommand cmd = commands.get(subCommand);
 
         if (cmd == null) {
             // 未知指令
@@ -110,7 +113,7 @@ public class Commands implements CommandExecutor, TabCompleter {
 
         if (strings.length == 1) {
             // 第一個參數，提供所有子命令
-            for (Map.Entry<String, AbstractsCommand> entry : commands.entrySet()) {
+            for (Map.Entry<String, AbstractCommand> entry : commands.entrySet()) {
                 if (commandSender.hasPermission(entry.getValue().getPermission())) {
                     if (entry.getKey().toLowerCase().startsWith(strings[0].toLowerCase())) {
                         completions.add(entry.getKey());
@@ -120,7 +123,7 @@ public class Commands implements CommandExecutor, TabCompleter {
         } else if (strings.length > 1) {
             // 後續參數，提供對應子命令的自動完成
             String subCommand = strings[0].toLowerCase();
-            AbstractsCommand cmd = commands.get(subCommand);
+            AbstractCommand cmd = commands.get(subCommand);
             if (cmd != null && commandSender.hasPermission(cmd.getPermission())) {
                 List<String> cmdCompletions = cmd.complete(commandSender, strings);
                 if (cmdCompletions != null) {

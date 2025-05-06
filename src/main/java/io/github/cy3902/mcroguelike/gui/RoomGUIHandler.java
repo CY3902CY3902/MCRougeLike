@@ -1,7 +1,10 @@
 package io.github.cy3902.mcroguelike.gui;
 
 import io.github.cy3902.mcroguelike.MCRogueLike;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsRoom;
+import io.github.cy3902.mcroguelike.abstracts.AbstractRoom;
+import io.github.cy3902.mcroguelike.config.Lang;
+import io.github.cy3902.mcroguelike.config.RoomConfig;
+import io.github.cy3902.mcroguelike.files.RoomFile;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -33,6 +36,9 @@ public class RoomGUIHandler implements Listener {
     private final Map<UUID, String> editingPlayers; // 玩家UUID -> 正在編輯的房間ID
     private final Map<UUID, InputState> inputStates; // 玩家UUID -> 輸入狀態
     private final Map<UUID, String> editingKeys; // 玩家UUID -> 正在編輯的配置鍵
+    private final Lang lang;
+    private final RoomFile roomFile;
+    private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
 
     private enum InputState {
         NONE,
@@ -47,7 +53,9 @@ public class RoomGUIHandler implements Listener {
         this.editingPlayers = new HashMap<>();
         this.inputStates = new HashMap<>();
         this.editingKeys = new HashMap<>();
-        plugin.getServer().getPluginManager().registerEvents(this, plugin);
+        this.lang = mcroguelike.getLang();
+        this.roomFile = mcroguelike.getRoomFile();
+        mcroguelike.getServer().getPluginManager().registerEvents(this, mcroguelike);
     }
 
     public static RoomGUIHandler getInstance() {
@@ -61,268 +69,122 @@ public class RoomGUIHandler implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) return;
         Player player = (Player) event.getWhoClicked();
+        
         String title = event.getView().getTitle();
+        if (!title.contains(lang.getMessage("room.gui.title")) && !title.contains(lang.getMessage("room.gui.edit_title"))) return;
+        
+        event.setCancelled(true);
+        
+        if (event.getCurrentItem() == null) return;
+        
+        if (title.contains(lang.getMessage("room.gui.title"))) {
+            handleMainMenuClick(event);
+        } else if (title.contains(lang.getMessage("room.gui.edit_title"))) {
+            handleEditMenuClick(event);
+        }
+    }
+
+    private void handleMainMenuClick(InventoryClickEvent event) {
+        Player player = (Player) event.getWhoClicked();
         ItemStack clickedItem = event.getCurrentItem();
         
-        if (clickedItem == null || clickedItem.getType() == Material.AIR) return;
-
-        // 主GUI處理
-        if (title.startsWith(ChatColor.DARK_PURPLE + "房間管理系統")) {
-            event.setCancelled(true);
-            handleMainGUI(event, player, clickedItem);
-        }
-        // 編輯GUI處理
-        else if (title.startsWith(ChatColor.DARK_PURPLE + "編輯房間: ")) {
-            event.setCancelled(true);
-            handleEditGUI(player, clickedItem, title);
-        }
-        // 房間類型選擇GUI處理
-        else if (title.equals(ChatColor.DARK_PURPLE + "選擇房間類型")) {
-            event.setCancelled(true);
-            handleRoomTypeSelection(player, clickedItem);
-        }
-    }
-
-    private void handleMainGUI(InventoryClickEvent event, Player player, ItemStack clickedItem) {
-        if (clickedItem.getType() == Material.EMERALD) {
-            // 創建新房間
-            promptForInput(player, null, "new_room", "請輸入新房間的ID");
-        } else if (clickedItem.getType() == Material.ARROW) {
-            // 處理分頁按鈕
-            String displayName = clickedItem.getItemMeta().getDisplayName();
-            int currentPage = roomGUI.getPlayerPage(player);
-            
-            if (displayName.equals(ChatColor.GREEN + "上一頁")) {
+        if (clickedItem.getType() == Material.ARROW) {
+            if (clickedItem.getItemMeta().getDisplayName().equals(lang.getMessage("room.gui.prev_page"))) {
+                int currentPage = roomGUI.getPlayerPage(player);
                 roomGUI.openRoomGUI(player, currentPage - 1);
-            } else if (displayName.equals(ChatColor.GREEN + "下一頁")) {
+            } else if (clickedItem.getItemMeta().getDisplayName().equals(lang.getMessage("room.gui.next_page"))) {
+                int currentPage = roomGUI.getPlayerPage(player);
                 roomGUI.openRoomGUI(player, currentPage + 1);
             }
-        } else {
-            String roomId = getRoomIdFromItem(clickedItem);
+        } else if (clickedItem.getType() == Material.EMERALD && 
+                   clickedItem.getItemMeta().getDisplayName().equals(lang.getMessage("room.gui.create_new"))) {
+            player.closeInventory();
+            player.sendMessage(lang.getMessage("room.gui.enter_value") + lang.getMessage("room.gui.room_name"));
+            inputStates.put(player.getUniqueId(), InputState.WAITING_FOR_INPUT);
+            editingKeys.put(player.getUniqueId(), "new_room");
+        } else if (clickedItem.getType() == Material.BOOK) {
+            List<String> lore = clickedItem.getItemMeta().getLore();
+            if (lore != null && !lore.isEmpty()) {
+                String roomId = lore.get(0).replace(lang.getMessage("room.gui.id"), "");
+                if (event.getClick() == ClickType.LEFT) {
+                    roomGUI.openRoomEditGUI(player, roomId);
+                } else if (event.getClick() == ClickType.RIGHT) {
+                    player.closeInventory();
+                    player.sendMessage(lang.getMessage("room.gui.confirm_delete"));
+                    inputStates.put(player.getUniqueId(), InputState.WAITING_FOR_INPUT);
+                    handleRoomDelete(player, roomId);
+                }
+            }
+        }
+    }
+
+    private void handleEditMenuClick(InventoryClickEvent event) {
+        Player player = (Player) event.getWhoClicked();
+        ItemStack clickedItem = event.getCurrentItem();
+        
+        if (clickedItem.getType() == Material.LIME_WOOL && 
+            clickedItem.getItemMeta().getDisplayName().equals(lang.getMessage("room.gui.save"))) {
+            String roomId = editingPlayers.get(player.getUniqueId());
             if (roomId == null) {
-                plugin.getLogger().warning("無法從物品中獲取房間ID");
+                player.sendMessage(lang.getMessage("room.gui.room_not_found"));
                 return;
             }
-
-            plugin.getLogger().info("獲取到房間ID: " + roomId);
-
-            if (event.isRightClick()) {
-                // 刪除房間
-                roomGUI.deleteRoom(roomId);
-                player.sendMessage(ChatColor.RED + "房間已刪除！");
-                roomGUI.openRoomGUI(player, roomGUI.getPlayerPage(player));
-            } else {
-                // 編輯房間
-                editingPlayers.put(player.getUniqueId(), roomId);
-                plugin.getLogger().info("設置編輯玩家: " + player.getName() + " -> " + roomId);
-                plugin.getLogger().info("當前編輯玩家列表: " + editingPlayers);
-                roomGUI.openRoomEditGUI(player, roomId);
+            handleRoomSave(player, roomId);
+        } else if (clickedItem.getType() == Material.COMPASS){
+            String setting = getSettingFromItem(clickedItem);
+            if (setting != null) {
+                player.closeInventory();
+                player.sendMessage(lang.getMessage("room.gui.move_to_spawn"));
+                inputStates.put(player.getUniqueId(), InputState.WAITING_FOR_INPUT);
+                editingKeys.put(player.getUniqueId(), setting);
             }
-        }
-    }
-
-    private void handleEditGUI(Player player, ItemStack clickedItem, String title) {
-        String roomId = editingPlayers.get(player.getUniqueId());
-        plugin.getLogger().info("正在編輯GUI的玩家: " + player.getName());
-        plugin.getLogger().info("玩家UUID: " + player.getUniqueId());
-        plugin.getLogger().info("編輯玩家列表: " + editingPlayers);
-        plugin.getLogger().info("獲取到的房間ID: " + roomId);
-
-        if (roomId == null) {
-            plugin.getLogger().warning("無法獲取正在編輯的房間ID");
-            return;
-        }
-
-        if (clickedItem.getType() == Material.LIME_WOOL) {
-            // 保存更改
-            player.sendMessage(ChatColor.GREEN + "更改已保存！");
-            roomGUI.saveRoomConfig(roomId);
-            editingPlayers.remove(player.getUniqueId());
-            inputStates.remove(player.getUniqueId());
-            editingKeys.remove(player.getUniqueId());
-            roomGUI.openRoomGUI(player);
-        } else {
-            // 編輯具體項目
-            String itemName = ChatColor.stripColor(clickedItem.getItemMeta().getDisplayName());
-            switch (itemName) {
-                case "房間名稱":
-                    promptForInput(player, roomId, "name", "請輸入新的房間名稱");
-                    break;
-                case "房間類型":
-                    openRoomTypeSelection(player);
-                    break;
-                case "結構名稱":
-                    promptForInput(player, roomId, "structure", "請輸入新的結構名稱");
-                    break;
-                case "時限":
-                    promptForInput(player, roomId, "time_limit", "請輸入新的時限（秒）");
-                    break;
-                case "基礎分數":
-                    promptForInput(player, roomId, "baseScore", "請輸入新的基礎分數");
-                    break;
-                case "玩家出生點":
-                    promptForLocation(player, roomId);
-                    break;
-                case "最小樓層":
-                    promptForInput(player, roomId, "floor.min", "請輸入新的最小樓層");
-                    break;
-                case "最大樓層":
-                    promptForInput(player, roomId, "floor.max", "請輸入新的最大樓層");
-                    break;
-            }
-        }
-    }
-
-    private void openRoomTypeSelection(Player player) {
-        Inventory gui = Bukkit.createInventory(null, 27, ChatColor.DARK_PURPLE + "選擇房間類型");
-        
-        // 生存房間
-        ItemStack survivalItem = createRoomTypeItem(Material.SHIELD, "生存房間", "玩家需要在指定時間內存活下來");
-        gui.setItem(11, survivalItem);
-        
-        // 剿滅房間
-        ItemStack annihilationItem = createRoomTypeItem(Material.DIAMOND_SWORD, "剿滅房間", "玩家需要在時間內消滅指定數量的敵人");
-        gui.setItem(12, annihilationItem);
-        
-        // 防守房間
-        ItemStack defenseItem = createRoomTypeItem(Material.IRON_DOOR, "防守房間", "玩家需要防守特定位置不被敵人攻破");
-        gui.setItem(13, defenseItem);
-        
-        // 狙擊房間
-        ItemStack sniperItem = createRoomTypeItem(Material.BOW, "狙擊房間", "玩家需要從遠處狙擊特定目標");
-        gui.setItem(14, sniperItem);
-        
-        // 返回按鈕
-        ItemStack backButton = new ItemStack(Material.BARRIER);
-        ItemMeta backMeta = backButton.getItemMeta();
-        backMeta.setDisplayName(ChatColor.RED + "返回");
-        backButton.setItemMeta(backMeta);
-        gui.setItem(26, backButton);
-        
-        player.openInventory(gui);
-    }
-
-    private ItemStack createRoomTypeItem(Material material, String name, String description) {
-        ItemStack item = new ItemStack(material);
-        ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName(ChatColor.GOLD + name);
-        
-        List<String> lore = new ArrayList<>();
-        lore.add(ChatColor.GRAY + description);
-        lore.add("");
-        lore.add(ChatColor.YELLOW + "點擊選擇此類型");
-        
-        meta.setLore(lore);
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    private void handleRoomTypeSelection(Player player, ItemStack clickedItem) {
-        if (clickedItem.getType() == Material.BARRIER) {
-            // 返回按鈕
+        } else if (clickedItem.getType() == Material.SPAWNER){ 
+            player.closeInventory();
+            player.sendMessage(lang.getMessage("room.gui.mob_spawn_enter"));
             String roomId = editingPlayers.get(player.getUniqueId());
-            if (roomId != null) {
-                roomGUI.openRoomEditGUI(player, roomId);
-            } else {
-                roomGUI.openRoomGUI(player);
+            SpawnpointGUIHandler.getInstance().openSpawnpointGUI(player, roomId);
+
+        } else {
+            String setting = getSettingFromItem(clickedItem);
+            if (setting != null) {
+                player.closeInventory();
+                player.sendMessage(lang.getMessage("room.gui.enter_value") + lang.getMessage("room.gui." + setting));
+                inputStates.put(player.getUniqueId(), InputState.WAITING_FOR_INPUT);
+                editingKeys.put(player.getUniqueId(), setting);
             }
-            return;
         }
-
-        String roomId = editingPlayers.get(player.getUniqueId());
-        if (roomId == null) return;
-
-        String type = null;
-        switch (clickedItem.getType()) {
-            case SHIELD:
-                type = "Survival";
-                break;
-            case DIAMOND_SWORD:
-                type = "Annihilation";
-                break;
-            case IRON_DOOR:
-                type = "Defense";
-                break;
-            case BOW:
-                type = "SniperMission";
-                break;
-        }
-
-        if (type != null) {
-            roomGUI.updateRoomConfig(roomId, "type", type);
-            player.sendMessage(ChatColor.GREEN + "房間類型已更新為: " + type);
-            roomGUI.openRoomEditGUI(player, roomId);
-        }
-    }
-
-    private void promptForLocation(Player player, String roomId) {
-        player.closeInventory();
-        player.sendMessage(ChatColor.YELLOW + "請移動到你想要設置的出生點位置，然後輸入 'confirm' 確認。");
-        player.sendMessage(ChatColor.YELLOW + "輸入 'cancel' 取消設置。");
-        inputStates.put(player.getUniqueId(), InputState.WAITING_FOR_LOCATION);
     }
 
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        String message = event.getMessage().toLowerCase();
+        if (!inputStates.containsKey(player.getUniqueId())) return;
+        
+        event.setCancelled(true);
+        String input = event.getMessage();
         InputState state = inputStates.get(player.getUniqueId());
         
-        if (state == null) return;
-
-        event.setCancelled(true);
-
-        switch (state) {
-            case WAITING_FOR_INPUT:
-                handleTextInput(player, message);
-                break;
-            case WAITING_FOR_LOCATION:
-                handleLocationInput(player, message);
-                break;
+        if (state == InputState.WAITING_FOR_INPUT) {
+            handleTextInput(player, input);
+        } else if (state == InputState.WAITING_FOR_LOCATION) {
+            handleLocationInput(player, input);
         }
     }
 
-    private void handleLocationInput(Player player, String message) {
+    private void handleTextInput(Player player, String input) {
         String roomId = editingPlayers.get(player.getUniqueId());
-        if (roomId == null) return;
-
-        if (message.equals("confirm")) {
-            Location loc = player.getLocation();
-            String locationString = String.format("%.0f,%.0f,%.0f", loc.getX(), loc.getY(), loc.getZ());
-            roomGUI.updateRoomConfig(roomId, "player_spawn", locationString);
-            player.sendMessage(ChatColor.GREEN + "出生點已設置為: " + locationString);
-            inputStates.remove(player.getUniqueId());
-            
-            // 使用調度器同步打開GUI
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                roomGUI.openRoomEditGUI(player, roomId);
-            });
-        } else if (message.equals("cancel")) {
-            player.sendMessage(ChatColor.RED + "已取消設置出生點");
-            inputStates.remove(player.getUniqueId());
-            
-            // 使用調度器同步打開GUI
-            Bukkit.getScheduler().runTask(plugin, () -> {
-                roomGUI.openRoomEditGUI(player, roomId);
-            });
-        } else {
-            player.sendMessage(ChatColor.RED + "無效的輸入。請輸入 'confirm' 確認或 'cancel' 取消。");
-        }
-    }
-
-    private void handleTextInput(Player player, String message) {
-        final String roomId = editingPlayers.get(player.getUniqueId());
+        
         final String key = editingKeys.get(player.getUniqueId());
         if (roomId == null || key == null) return;
 
         // 處理新房間創建
         if (key.equals("new_room")) {
-            if (roomGUI.getRoomConfig(message) != null) {
-                player.sendMessage(ChatColor.RED + "該房間ID已存在！");
+            if (roomFile.getConfig(input) != null) {
+                handleRoomCreate(player, input);
                 return;
             }
-            roomGUI.createNewRoom(message, "Survival"); // 默認創建生存房間
-            player.sendMessage(ChatColor.GREEN + "已創建新房間！");
+            roomFile.loadRoom(input);
+            handleRoomCreate(player, input);
             inputStates.remove(player.getUniqueId());
             editingKeys.remove(player.getUniqueId());
             Bukkit.getScheduler().runTask(plugin, () -> roomGUI.openRoomGUI(player));
@@ -330,19 +192,31 @@ public class RoomGUIHandler implements Listener {
         }
 
         // 處理數值輸入
-        if (key.equals("time_limit") || key.equals("baseScore") || key.equals("floor.min") || key.equals("floor.max")) {
+        if (key.equals("time_limit") || key.equals("baseScore") || key.equals("min_floor") || key.equals("max_floor") || key.equals("early_completion_multiplier")) {
             try {
-                int value = Integer.parseInt(message);
-                roomGUI.updateRoomConfig(roomId, key, value);
-                player.sendMessage(ChatColor.GREEN + "已更新設置！");
+                double value = Double.parseDouble(input);
+                handleSettingsUpdate(player, roomId, key, String.valueOf(value));
             } catch (NumberFormatException e) {
-                player.sendMessage(ChatColor.RED + "請輸入有效的數值！");
+                handleInvalidInput(player);
                 return;
             }
+        } else if (key.equals("player_spawn")) {
+           // 處理玩家出生點設置
+            if (key.equals("player_spawn") && !input.equals("confirm") && !input.equals("cancel")) {
+                player.sendMessage(lang.getMessage("room.gui.invalid_input"));
+                return;
+             }
+            if (key.equals("player_spawn") && input.equals("confirm")) {
+                Location location = player.getLocation();
+                input = location.getBlockX() + "," + location.getBlockY() + "," + location.getBlockZ();
+                handleSettingsUpdate(player, roomId, key, input);
+            }
         } else if (key.equals("name") || key.equals("structure")) {
+
             // 處理文本輸入
-            roomGUI.updateRoomConfig(roomId, key, message);
-            player.sendMessage(ChatColor.GREEN + "已更新設置！");
+            handleSettingsUpdate(player, roomId, key, input);
+
+            handleMessage(player, lang.getMessage("room.gui.settings_updated"));
         }
 
         inputStates.remove(player.getUniqueId());
@@ -354,25 +228,44 @@ public class RoomGUIHandler implements Listener {
         });
     }
 
-    private void promptForInput(Player player, String roomId, String key, String message) {
-        player.closeInventory();
-        player.sendMessage(ChatColor.YELLOW + message);
-        inputStates.put(player.getUniqueId(), InputState.WAITING_FOR_INPUT);
-        editingKeys.put(player.getUniqueId(), key);
+    private void handleLocationInput(Player player, String input) {
+        String roomId = editingPlayers.get(player.getUniqueId());
+        if (roomId == null) return;
+
+        if (input.equals("confirm")) {
+            handleSpawnPointConfirm(player, roomId);
+            inputStates.remove(player.getUniqueId());
+            
+            // 使用調度器同步打開GUI
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                roomGUI.openRoomEditGUI(player, roomId);
+            });
+        } else if (input.equals("cancel")) {
+            handleSpawnPointCancel(player);
+            inputStates.remove(player.getUniqueId());
+            
+            // 使用調度器同步打開GUI
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                roomGUI.openRoomEditGUI(player, roomId);
+            });
+        } else {
+            handleInvalidInput(player);
+        }
     }
 
-    private String getRoomIdFromItem(ItemStack item) {
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null || meta.getLore() == null) return null;
+    private String getSettingFromItem(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return null;
         
-        List<String> lore = meta.getLore();
-        for (String line : lore) {
-            if (line.startsWith(ChatColor.GRAY + "ID: ")) {
-                String roomId = ChatColor.stripColor(line.substring(4));
-                // 清理房間ID中的特殊字符
-                return roomId.replace(":", "").trim();
-            }
-        }
+        String displayName = item.getItemMeta().getDisplayName();
+        if (displayName.equals(lang.getMessage("room.gui.room_name"))) return "name";
+        if (displayName.equals(lang.getMessage("room.gui.room_type"))) return "type";
+        if (displayName.equals(lang.getMessage("room.gui.structure"))) return "structure";
+        if (displayName.equals(lang.getMessage("room.gui.time_limit"))) return "time_limit";
+        if (displayName.equals(lang.getMessage("room.gui.base_score"))) return "baseScore";
+        if (displayName.equals(lang.getMessage("room.gui.player_spawn"))) return "player_spawn";
+        if (displayName.equals(lang.getMessage("room.gui.min_floor"))) return "min_floor";
+        if (displayName.equals(lang.getMessage("room.gui.max_floor"))) return "max_floor";
+        
         return null;
     }
 
@@ -383,16 +276,15 @@ public class RoomGUIHandler implements Listener {
         String title = event.getView().getTitle();
 
         // 如果是編輯GUI，確保編輯狀態被設置
-        if (title.startsWith(ChatColor.DARK_PURPLE + "編輯房間: ")) {
+        if (title.startsWith(lang.getMessage("room.gui.edit_title"))) {
             String roomId = editingPlayers.get(player.getUniqueId());
             if (roomId == null) {
                 // 從標題中提取房間ID
                 String roomName = title.substring(title.indexOf(": ") + 2);
-                for (Map.Entry<String, FileConfiguration> entry : roomGUI.getRoomConfigs().entrySet()) {
-                    if (entry.getValue().getString("name", "").equals(roomName)) {
+                for (Map.Entry<String, RoomConfig> entry : roomFile.getAllConfigs().entrySet()) {
+                    if (entry.getValue().getName().equals(roomName)) {
                         roomId = entry.getKey();
                         editingPlayers.put(player.getUniqueId(), roomId);
-                        plugin.getLogger().info("設置編輯玩家: " + player.getName() + " -> " + roomId);
                         break;
                     }
                 }
@@ -412,17 +304,17 @@ public class RoomGUIHandler implements Listener {
 
         // 如果玩家在編輯GUI中，保留編輯狀態
         String title = event.getView().getTitle();
-        if (title.startsWith(ChatColor.DARK_PURPLE + "編輯房間: ")) {
+        if (title.startsWith(lang.getMessage("room.gui.edit_title"))) {
             return;
         }
 
         // 如果玩家在房間類型選擇GUI中，保留編輯狀態
-        if (title.equals(ChatColor.DARK_PURPLE + "選擇房間類型")) {
+        if (title.equals(lang.getMessage("room.gui.room_type_title"))) {
             return;
         }
 
         // 如果玩家在房間管理系統GUI中，保留編輯狀態
-        if (title.startsWith(ChatColor.DARK_PURPLE + "房間管理系統")) {
+        if (title.startsWith(lang.getMessage("room.gui.title"))) {
             return;
         }
 
@@ -433,7 +325,104 @@ public class RoomGUIHandler implements Listener {
         }
     }
 
+    public void handleRoomDelete(Player player, String roomId) {
+        roomGUI.deleteRoom(roomId);
+        player.sendMessage(lang.getMessage("room.gui.room_deleted"));
+    }
+
+    public void handleRoomSave(Player player, String roomId) {
+        roomGUI.saveRoomConfig(roomId);
+        player.sendMessage(lang.getMessage("room.gui.changes_saved"));
+        player.closeInventory();
+    }
+
+    public void handleRoomTypeUpdate(Player player, String roomId, String type) {
+        roomFile.getConfig(roomId).setType(type);
+        player.sendMessage(lang.getMessage("room.gui.room_type_updated") + type);
+    }
+
+    public void handleSpawnPointConfirm(Player player, String roomId) {
+        String locationString = player.getLocation().getBlockX() + ", " + 
+                              player.getLocation().getBlockY() + ", " + 
+                              player.getLocation().getBlockZ();
+        roomFile.getConfig(roomId).setPlayerSpawn(locationString);
+        player.sendMessage(lang.getMessage("room.gui.spawn_set") + locationString);
+    }
+
+    public void handleSpawnPointCancel(Player player) {
+        player.sendMessage(lang.getMessage("room.gui.spawn_cancelled"));
+    }
+
+    public void handleInvalidInput(Player player) {
+        player.sendMessage(lang.getMessage("room.gui.invalid_input"));
+    }
+
+    public void handleRoomCreate(Player player, String roomId) {
+        if (roomFile.getConfig(roomId) != null) {
+            player.sendMessage(lang.getMessage("room.gui.room_exists"));
+            return;
+        }
+        roomFile.loadRoom(roomId);
+        roomFile.getConfig(roomId).setRoomId(roomId);
+        roomFile.getConfig(roomId).setName(roomId);
+        roomFile.getConfig(roomId).setType("Survival");
+        player.sendMessage(lang.getMessage("room.gui.room_created"));
+    }
+
+    public void handleSettingsUpdate(Player player, String roomId, String setting, String value) {
+        try {
+            if (setting.equals("player_spawn")) {
+                roomFile.getConfig(roomId).setPlayerSpawn(value);
+                player.sendMessage(lang.getMessage("room.gui.settings_updated"));
+                return;
+            }
+        } catch (NumberFormatException e) {
+            player.sendMessage(lang.getMessage("room.gui.invalid_number"));
+        }
+        try {
+            double numericValue = Double.parseDouble(value);
+          
+            switch (setting) {
+                case "time_limit":
+                    roomFile.getConfig(roomId).setTimeLimit((int) numericValue);
+                    break;
+                case "baseScore":
+                    roomFile.getConfig(roomId).setBaseScore((int) numericValue);
+                    break;
+                case "min_floor":
+                    roomFile.getConfig(roomId).setMinFloor((int) numericValue);
+                    break;
+                case "max_floor":
+                    roomFile.getConfig(roomId).setMaxFloor((int) numericValue);
+                    break;
+                case "early_completion_multiplier":
+                    roomFile.getConfig(roomId).setEarlyCompletionMultiplier((double) numericValue);
+                    break;
+                case "name":
+                    roomFile.getConfig(roomId).setName(value);
+                    break;
+                case "structure":
+                    roomFile.getConfig(roomId).setStructure(value);
+                    break;
+                default:
+                    player.sendMessage(lang.getMessage("room.gui.invalid_setting"));
+                    return;
+            }
+            player.sendMessage(lang.getMessage("room.gui.settings_updated"));
+        } catch (NumberFormatException e) {
+            player.sendMessage(lang.getMessage("room.gui.invalid_number"));
+        }
+    }
+
+    public void handleMessage(Player player, String message) {
+        player.sendMessage(message);
+    }
+
     public void setEditingPlayer(UUID playerId, String roomId) {
         editingPlayers.put(playerId, roomId);
+    }
+
+    public void openRoomEditGUI(Player player, String roomId) {
+        roomGUI.openRoomEditGUI(player, roomId);
     }
 } 

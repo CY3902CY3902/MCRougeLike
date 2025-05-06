@@ -3,7 +3,7 @@ type: "Annihilation"
 structure: "annihilation_structure"
 description: "剿滅房間"
 time_limit: 600  # 10分鐘
-baseScore: 200
+base_score: 200
 early_completion_multiplier: 1.5
 player_spawn: "0,64,0"  # 玩家出生點
 floor:

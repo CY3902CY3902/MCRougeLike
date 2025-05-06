@@ -3,7 +3,8 @@ type: "Survival"
 structure: "survival_structure"
 description: "生存房間"
 time_limit: 300  # 5分鐘
-baseScore: 100
+base_score: 100
+early_completion_multiplier: 1.5
 player_spawn: "0,64,0"  # 玩家出生點
 floor:
   min: 0

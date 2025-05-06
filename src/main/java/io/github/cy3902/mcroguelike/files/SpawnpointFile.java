@@ -2,17 +2,14 @@ package io.github.cy3902.mcroguelike.files;
 
 import io.github.cy3902.mcroguelike.abstracts.FileProvider;
 import io.github.cy3902.mcroguelike.abstracts.FileProviderList;
+import io.github.cy3902.mcroguelike.config.MobConfig;
 import io.github.cy3902.mcroguelike.config.SpawnpointConfig;
 import io.github.cy3902.mcroguelike.spawnpoint.Spawnpoint;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsMob;
+import io.github.cy3902.mcroguelike.abstracts.AbstractMob;
 import io.github.cy3902.mcroguelike.abstracts.AbstractSpawnpoint;
-import io.github.cy3902.mcroguelike.abstracts.Mob;
+import io.github.cy3902.mcroguelike.mobs.Mob;
 import io.github.cy3902.mcroguelike.MCRogueLike;
-import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,7 +24,7 @@ import java.util.Map;
  * 用於讀取和保存生成點配置文件
  */
 public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConfig>> {
-    private static final String SPAWNPOINT_DIRECTORY = "spawnpoints";
+    private static final String SPAWNPOINT_DIRECTORY = "Spawnpoint";
     private final java.util.Map<String, SpawnpointConfig> configs = new HashMap<>();
     private final java.util.Map<String, AbstractSpawnpoint> spawnpoints = new HashMap<>();
     private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
@@ -67,15 +64,17 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
                         // 讀取怪物配置
                         ConfigurationSection mobsSection = yml.getConfigurationSection("mobs");
                         if (mobsSection != null) {
-                            Map<String, SpawnpointConfig.MobConfig> mobs = new HashMap<>();
+                            Map<String, MobConfig> mobs = new HashMap<>();
                             for (String mobType : mobsSection.getKeys(false)) {
                                 ConfigurationSection mobSection = mobsSection.getConfigurationSection(mobType);
                                 if (mobSection != null) {
-                                    SpawnpointConfig.MobConfig mobConfig = new SpawnpointConfig.MobConfig(
+                                    MobConfig mobConfig = new MobConfig(
                                         mobSection.getDouble("health_multiplier", 0.4),
                                         mobSection.getDouble("damage_multiplier", 0.4),
                                         mobSection.getDouble("speed_multiplier", 0.4),
-                                        mobSection.getBoolean("is_boss", false)
+                                        mobSection.getBoolean("is_boss", false),
+                                        mobSection.getBoolean("is_guard_target", false),
+                                        mobSection.getInt("count", 1)
                                     );
                                     mobs.put(mobType, mobConfig);
                                 }
@@ -94,9 +93,9 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
 
                         // 保存怪物配置
                         ConfigurationSection mobsSection = yml.createSection("mobs");
-                        for (Map.Entry<String, SpawnpointConfig.MobConfig> entry : config.getMobs().entrySet()) {
+                        for (Map.Entry<String, MobConfig> entry : config.getMobs().entrySet()) {
                             ConfigurationSection mobSection = mobsSection.createSection(entry.getKey());
-                            SpawnpointConfig.MobConfig mobConfig = entry.getValue();
+                            MobConfig mobConfig = entry.getValue();
                             mobSection.set("health_multiplier", mobConfig.getHealthMultiplier());
                             mobSection.set("damage_multiplier", mobConfig.getDamageMultiplier());
                             mobSection.set("speed_multiplier", mobConfig.getSpeedMultiplier());
@@ -155,10 +154,10 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
      * @return 生成點物件
      */
     private AbstractSpawnpoint convertToSpawnpoint(String spawnpointId, SpawnpointConfig config) {
-        List<AbstractsMob> mobs = new ArrayList<>();
-        for (Map.Entry<String, SpawnpointConfig.MobConfig> entry : config.getMobs().entrySet()) {
+        List<AbstractMob> mobs = new ArrayList<>();
+        for (Map.Entry<String, MobConfig> entry : config.getMobs().entrySet()) {
             String mobType = entry.getKey();
-            SpawnpointConfig.MobConfig mobConfig = entry.getValue();
+            MobConfig mobConfig = entry.getValue();
             
             // 創建怪物實例
             mobs.add(new Mob(
@@ -167,7 +166,8 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
                 mobConfig.getDamageMultiplier(),
                 mobConfig.getSpeedMultiplier(),
                 mobConfig.isBoss(),  // 使用isBoss作為isKeyMob
-                false  // 暫時不使用isGuardTarget
+                mobConfig.isGuardTarget(),
+                mobConfig.getCount()
             ));
         }
 

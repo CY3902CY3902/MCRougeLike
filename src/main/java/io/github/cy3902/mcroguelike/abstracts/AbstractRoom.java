@@ -1,25 +1,23 @@
 package io.github.cy3902.mcroguelike.abstracts;
 
 import io.github.cy3902.mcroguelike.MCRogueLike;
-import io.github.cy3902.mcroguelike.manager.room.RoomManager;
-import io.github.cy3902.mcroguelike.manager.score.ScoreManager;
-import io.github.cy3902.mcroguelike.manager.spawn.SpawnPointManager;
+import io.github.cy3902.mcroguelike.manager.room.ScoreManager;
+import io.github.cy3902.mcroguelike.manager.room.SpawnPointManager;
 import io.github.cy3902.mcroguelike.schem.Schem;
 import io.github.cy3902.mcroguelike.utils.LocationUtils;
 
 import java.io.File;
 import java.util.HashMap;
-import java.util.List;
+import java.util.function.Consumer;
 
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 
 /**
  * AbstractsLevel 是抽象關卡類別，定義了關卡的基本屬性和行為。
  * 包含了關卡模式、類型的定義，以及關卡的基本操作方法。
  */
-public abstract class AbstractsRoom {
+public abstract class AbstractRoom {
     protected final MCRogueLike mcRogueLike = MCRogueLike.getInstance();
 
     /**
@@ -46,6 +44,7 @@ public abstract class AbstractsRoom {
     private final String roomId;
     private final String name;
     private final String structureName;
+    private final RoomType type;
     private final HashMap<AbstractSpawnpoint, Location> spawnPoints;
     private final int minFloor;
     private final int maxFloor;
@@ -53,11 +52,7 @@ public abstract class AbstractsRoom {
     private final int baseScore;
     private final String playerSpawnPoint;
 
-    private boolean isRunning;
-    private boolean isPaused;
-    private int remainingTime;
 
-    private RoomManager manager;
     private SpawnPointManager spawnPointManager;
     private ScoreManager scoreManager;
 
@@ -72,10 +67,11 @@ public abstract class AbstractsRoom {
      * @param baseScore 基礎分數
      * @param playerSpawnPoint 玩家出生點
      */
-    public AbstractsRoom(
+    public AbstractRoom(
             String roomId,
             String name,
             String structureName,
+            RoomType type,
             HashMap<AbstractSpawnpoint, Location> spawnPoints,
             int minFloor,
             int maxFloor,
@@ -86,56 +82,16 @@ public abstract class AbstractsRoom {
         this.roomId = roomId;
         this.name = name;
         this.structureName = structureName;
+        this.type = type;
         this.spawnPoints = spawnPoints;
         this.minFloor = minFloor;
         this.maxFloor = maxFloor;
         this.timeLimit = timeLimit;
         this.baseScore = baseScore;
         this.playerSpawnPoint = playerSpawnPoint;
-        this.isRunning = false;
-        this.isPaused = false;
-        this.remainingTime = timeLimit;
     }
 
-    /**
-     * 設定房間管理器
-     * @param manager 房間管理器
-     */
-    public void setManager(RoomManager manager) {
-        this.manager = manager;
-    }
 
-    /**
-     * 取得房間管理器
-     * @return 房間管理器
-     */
-    public RoomManager getManager() {
-        return manager;
-    }
-
-    /**
-     * 設定房間運行狀態
-     * @param running 是否運行
-     */
-    public void setRunning(boolean running) {
-        this.isRunning = running;
-    }
-
-    /**
-     * 設定房間暫停狀態
-     * @param paused 是否暫停
-     */
-    public void setPaused(boolean paused) {
-        this.isPaused = paused;
-    }
-
-    /**
-     * 設定剩餘時間
-     * @param remainingTime 剩餘時間
-     */
-    public void setRemainingTime(int remainingTime) {
-        this.remainingTime = remainingTime;
-    }
 
     /**
      * 取得關卡時限
@@ -163,35 +119,29 @@ public abstract class AbstractsRoom {
 
     /**
      * 載入關卡結構
+     * @param location 位置
+     * @param callback 回調函數，當結構生成完成時調用
      */
-    public void loadSchematics(Location location){
+    public void loadSchematics(Location location, Consumer<Boolean> callback) {
         //載入結構
         File schemFile = new File(mcRogueLike.getDataFolder() + "/schematics/" + structureName + ".schem");
         if (!schemFile.exists()) {
-            mcRogueLike.getLogger().severe("找不到結構文件: " + structureName + ".schem");
+            if (callback != null) {
+                callback.accept(false);
+            }
             return;
         }
         Schem schem = new Schem(structureName, schemFile, location);
+        schem.setPasteCallback(callback);
         schem.paste(location);
-    };
+    }
 
     /**
-     * 初始化房間
-     * @param players 玩家列表
+     * 載入關卡結構（無回調版本）
+     * @param location 位置
      */
-    public abstract void initialize(List<Player> players);
-
-    /**
-     * 重置房間
-     */
-    public abstract void reset();
-
-    /**
-     * 取得剩餘時間
-     * @return 剩餘時間(秒)
-     */
-    public int getRemainingTime() {
-        return remainingTime;
+    public void loadSchematics(Location location) {
+        loadSchematics(location, null);
     }
 
     /**
@@ -243,21 +193,6 @@ public abstract class AbstractsRoom {
         return spawnPoints;
     }
 
-    /**
-     * 檢查房間是否正在運行
-     * @return 是否正在運行
-     */
-    public boolean isRunning() {
-        return isRunning;
-    }
-
-    /**
-     * 檢查房間是否暫停
-     * @return 是否暫停
-     */
-    public boolean isPaused() {
-        return isPaused;
-    }
 
     public SpawnPointManager getSpawnPointManager() {
         return spawnPointManager;
@@ -273,5 +208,13 @@ public abstract class AbstractsRoom {
 
     public void setScoreManager(ScoreManager scoreManager) {
         this.scoreManager = scoreManager;
+    }
+
+    /**
+     * 取得關卡類型
+     * @return 關卡類型
+     */
+    public RoomType getType() {
+        return type;
     }
 }

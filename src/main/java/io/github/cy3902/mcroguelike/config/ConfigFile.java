@@ -56,10 +56,10 @@ public class ConfigFile extends FileProvider<YamlConfiguration> {
 
         // 設置語言類型
         try {
-            MCRogueLike.setLangType(Lang.LangType.valueOf(lang));
+            mcroguelike.setLangType(Lang.LangType.valueOf(lang));
         } catch (IllegalArgumentException e) {
             // 如果語言無效，設置為默認語言 "zh_TW"
-            MCRogueLike.setLangType(Lang.LangType.zh_TW);
+            mcroguelike.setLangType(Lang.LangType.zh_TW);
         }
 
         // 設置數據庫類型
@@ -74,7 +74,7 @@ public class ConfigFile extends FileProvider<YamlConfiguration> {
         if (databaseType == DatabaseType.sqlite) {
             // 讀取 SQLite 配置參數
             String DATABASE_URL = yml.getString("file_path", "plugins/MCRogueLike/SQL/mcrougelike.db");
-            MCRogueLike.setSql(new SQLite(DATABASE_URL));
+            mcroguelike.setSql(new SQLite(DATABASE_URL));
         } else if (databaseType == DatabaseType.mysql) {
             // 讀取 MySQL 配置參數
             String host = yml.getString("database.mysql.host", "");
@@ -83,8 +83,9 @@ public class ConfigFile extends FileProvider<YamlConfiguration> {
             String username = yml.getString("database.mysql.username", "");
             String password = yml.getString("database.mysql.password", "");
 
+            
             // 創建 MySQL 實例並設置
-            MCRogueLike.setSql(new MySQL(host, port, dbName, username, password));
+            mcroguelike.setSql(new MySQL(host, port, dbName, username, password));
         }
     }
 }

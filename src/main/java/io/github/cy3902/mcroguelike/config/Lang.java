@@ -177,6 +177,61 @@ public class Lang extends FileProvider<Map<String, String>> {
         messages.put("room.gui.invalid_number", color(yml.getString("room.gui.invalid_number", "&c請輸入有效的數值！")));
         messages.put("room.gui.enter_value", color(yml.getString("room.gui.enter_value", "&e請輸入新的")));
         messages.put("room.gui.config_not_found", color(yml.getString("room.gui.config_not_found", "&c無法找到房間配置！")));
+        messages.put("room.gui.confirm_delete", color(yml.getString("room.gui.confirm_delete", "&c確認刪除房間？輸入 'yes' 確認，其他任意輸入取消。")));
+        messages.put("room.gui.delete_cancelled", color(yml.getString("room.gui.delete_cancelled", "&a已取消刪除房間。")));
+        messages.put("room.gui.invalid_setting", color(yml.getString("room.gui.invalid_setting", "&c無效的設置項！")));
+        messages.put("room.gui.confirm", color(yml.getString("room.gui.confirm", "confirm")));
+        messages.put("room.gui.cancel", color(yml.getString("room.gui.cancel", "cancel")));
+        messages.put("room.gui.room_not_found", color(yml.getString("room.gui.room_not_found", "&c找不到房間！")));
+        messages.put("room.gui.create_new_spawnpoint", color(yml.getString("room.gui.create_new_spawnpoint", "&a創建新生成點")));
+        messages.put("room.gui.delete_spawnpoint", color(yml.getString("room.gui.delete_spawnpoint", "&c刪除生成點")));
+        messages.put("room.gui.mob_spawn_enter", color(yml.getString("room.gui.mob_spawn_enter", "&e進入怪物生成點編輯模式")));
+        messages.put("room.gui.mob_spawn", color(yml.getString("room.gui.mob_spawn_enter", "&e怪物生成點")));
+
+        // 房間類型描述
+        messages.put("room.type.survival_desc", color(yml.getString("room.type.survival_desc", "玩家需要在指定時間內存活下來")));
+        messages.put("room.type.annihilation_desc", color(yml.getString("room.type.annihilation_desc", "玩家需要在時間內消滅指定數量的敵人")));
+        messages.put("room.type.defense_desc", color(yml.getString("room.type.defense_desc", "玩家需要防守特定位置不被敵人攻破")));
+        messages.put("room.type.sniper_desc", color(yml.getString("room.type.sniper_desc", "玩家需要從遠處狙擊特定目標")));
+
+        // 路徑GUI相關文字
+        messages.put("path.gui.title", color(yml.getString("path.gui.title", "&b&lMCRogueLike &f路徑選擇")));
+        messages.put("path.gui.selectable", color(yml.getString("path.gui.selectable", "&a可選擇")));
+        messages.put("path.gui.not_selectable", color(yml.getString("path.gui.not_selectable", "&c不可選擇")));
+        messages.put("path.gui.previous_page", color(yml.getString("path.gui.previous_page", "&e上一頁")));
+        messages.put("path.gui.next_page", color(yml.getString("path.gui.next_page", "&e下一頁")));
+        messages.put("path.gui.page_info", color(yml.getString("path.gui.page_info", "&6頁面 %current%/%total%")));
+        messages.put("path.gui.node_name", color(yml.getString("path.gui.node_name", "&b節點 %value%")));
+        messages.put("path.gui.node_level", color(yml.getString("path.gui.node_level", "&7等級: %level%")));
+        messages.put("path.gui.special_node", color(yml.getString("path.gui.special_node", "&c特殊節點")));
+        messages.put("path.gui.room_info", color(yml.getString("path.gui.room_info", "&7房間: %name%")));
+        messages.put("path.gui.parent_nodes", color(yml.getString("path.gui.parent_nodes", "&7父節點:")));
+        messages.put("path.gui.parent_node", color(yml.getString("path.gui.parent_node", "&7- 節點 %value%")));
+        messages.put("path.gui.child_nodes", color(yml.getString("path.gui.child_nodes", "&7子節點:")));
+        messages.put("path.gui.child_node", color(yml.getString("path.gui.child_node", "&7- 節點 %value%")));
+        messages.put("path.gui.select_node_first", color(yml.getString("path.gui.select_node_first", "&c請先選擇一個節點")));
+        messages.put("path.gui.node_selected", color(yml.getString("path.gui.node_selected", "&a已選擇節點 %node%")));
+        messages.put("path.gui.invalid_map", color(yml.getString("path.gui.invalid_map", "&c無效的地圖")));
+        messages.put("path.gui.invalid_room", color(yml.getString("path.gui.invalid_room", "&c無效的房間")));
+        messages.put("path.gui.invalid_map_location", color(yml.getString("path.gui.invalid_map_location", "&c無效的地圖位置")));
+        messages.put("path.gui.room_generated", color(yml.getString("path.gui.room_generated", "&a已生成房間 %room%")));
+        messages.put("path.gui.invalid_map_room", color(yml.getString("path.gui.invalid_map_room", "&c無效的地圖或房間")));
+        messages.put("path.gui.map_not_found", color(yml.getString("path.gui.map_not_found", "&c找不到地圖")));
+        messages.put("path.gui.room_not_found", color(yml.getString("path.gui.room_not_found", "&c找不到房間")));
+
+        // Room log messages
+        messages.put("room.log.cannot_get_room_id", color(yml.getString("room.log.cannot_get_room_id", "無法從物品中獲取房間ID")));
+        messages.put("room.log.got_room_id", color(yml.getString("room.log.got_room_id", "獲取到房間ID: %id%")));
+        messages.put("room.log.set_editing_player", color(yml.getString("room.log.set_editing_player", "設置編輯玩家: %player% -> %room%")));
+        messages.put("room.log.current_editing_players", color(yml.getString("room.log.current_editing_players", "當前編輯玩家列表: %list%")));
+        messages.put("room.log.editing_gui_player", color(yml.getString("room.log.editing_gui_player", "正在編輯GUI的玩家: %player%")));
+        messages.put("room.log.player_uuid", color(yml.getString("room.log.player_uuid", "玩家UUID: %uuid%")));
+        messages.put("room.log.editing_players_list", color(yml.getString("room.log.editing_players_list", "編輯玩家列表: %list%")));
+        messages.put("room.log.got_room_id_from_gui", color(yml.getString("room.log.got_room_id_from_gui", "獲取到的房間ID: %id%")));
+        messages.put("room.log.cannot_get_editing_room", color(yml.getString("room.log.cannot_get_editing_room", "無法獲取正在編輯的房間ID")));
+   
+        // bossbar相關文字
+        messages.put("bossbar.survival_time", color(yml.getString("bossbar.survival_time", "&a生存時間: %time%/%max_time%")));
     }
 
     /**

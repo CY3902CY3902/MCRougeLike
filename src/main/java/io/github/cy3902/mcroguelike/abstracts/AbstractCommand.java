@@ -14,10 +14,10 @@ import java.util.*;
  * 包含了處理指令發送者、權限檢查及命令長度限制等功能。
  * 此類主要用於擴展以創建具體命令實現。
  */
-public abstract class AbstractsCommand {
+public abstract class AbstractCommand {
 
     protected final MCRogueLike mcRogueLike = MCRogueLike.getInstance();
-    protected final Lang lang = MCRogueLike.getLang();
+    protected final Lang lang = mcRogueLike.getLang();
     protected String permission;
     protected String command;
     protected List<Integer> length;
@@ -29,7 +29,7 @@ public abstract class AbstractsCommand {
      * @param command    指令名稱
      * @param length     指令參數的長度
      */
-    public AbstractsCommand(String permission, String command, int length) {
+    public AbstractCommand(String permission, String command, int length) {
         this.permission = permission;
         this.command = command;
         this.length = Collections.singletonList(length);
@@ -42,7 +42,7 @@ public abstract class AbstractsCommand {
      * @param command    指令名稱
      * @param length     指令參數長度的列表
      */
-    public AbstractsCommand(String permission, String command, List<Integer> length) {
+    public AbstractCommand(String permission, String command, List<Integer> length) {
         this.permission = permission;
         this.command = command;
         this.length = length;

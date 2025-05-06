@@ -1,7 +1,7 @@
 package io.github.cy3902.mcroguelike.commands;
 
 import io.github.cy3902.mcroguelike.MCRogueLike;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsCommand;
+import io.github.cy3902.mcroguelike.abstracts.AbstractCommand;
 import io.github.cy3902.mcroguelike.schem.Schem;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -10,7 +10,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SchemCommand extends AbstractsCommand {
+public class SchemCommand extends AbstractCommand {
     
     public SchemCommand() {
         super("mcroguelike.schem", "paste", 2); // 命令格式: /mcrougelike paste <filename>

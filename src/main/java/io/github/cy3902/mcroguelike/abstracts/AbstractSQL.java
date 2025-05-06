@@ -3,7 +3,7 @@ package io.github.cy3902.mcroguelike.abstracts;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public abstract class AbstractsSQL {
+public abstract class AbstractSQL {
     protected Connection connection;
 
     /**
@@ -39,6 +39,13 @@ public abstract class AbstractsSQL {
      * @param params 更新參數
      */
     public abstract void update(String sql, String[] params);
+
+    /**
+     * 執行刪除操作
+     * @param sql SQL刪除語句
+     * @param params 刪除參數
+     */
+    public abstract void delete(String sql, String[] params);
 
     /**
      * 檢查資料庫連接是否有效。

@@ -3,7 +3,7 @@ package io.github.cy3902.mcroguelike.files;
 import io.github.cy3902.mcroguelike.MCRogueLike;
 import io.github.cy3902.mcroguelike.abstracts.FileProvider;
 import io.github.cy3902.mcroguelike.abstracts.FileProviderList;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsRoom;
+import io.github.cy3902.mcroguelike.abstracts.AbstractRoom;
 import io.github.cy3902.mcroguelike.config.RoomConfig;
 import io.github.cy3902.mcroguelike.room.AnnihilationRoom;
 import io.github.cy3902.mcroguelike.room.SurvivalRoom;
@@ -11,7 +11,11 @@ import io.github.cy3902.mcroguelike.room.SurvivalRoom;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
+
+import org.bukkit.Location;
 
 /**
  * 房間文件管理類
@@ -20,7 +24,7 @@ import java.util.logging.Level;
 public class RoomFile extends FileProviderList<FileProvider<RoomConfig>> {
     private static final String ROOM_DIRECTORY = "Room";
     private final java.util.Map<String, RoomConfig> configs = new HashMap<>();
-    private final java.util.Map<String, AbstractsRoom> rooms = new HashMap<>();
+    private final java.util.Map<String, AbstractRoom> rooms = new HashMap<>();
     private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
 
     /**
@@ -59,12 +63,24 @@ public class RoomFile extends FileProviderList<FileProvider<RoomConfig>> {
                         config.setBaseScore(yml.getInt("base_score", 100));
                         config.setEarlyCompletionMultiplier(yml.getDouble("early_completion_multiplier", 1.5));
                         config.setPlayerSpawn(yml.getString("player_spawn", "0,64,0"));
+                        
+                        // 讀取生成點
+                        List<Map<String, String>> spawnpoints = new ArrayList<>();
+                        if (yml.contains("spawn_points")) {
+                            List<Map<?, ?>> spawnPointsList = yml.getMapList("spawn_points");
+                            for (Map<?, ?> spawnPoint : spawnPointsList) {
+                                Map<String, String> spawnPointMap = new HashMap<>();
+                                spawnPointMap.put("name", String.valueOf(spawnPoint.get("name")));
+                                spawnPointMap.put("location", String.valueOf(spawnPoint.get("location")));
+                                spawnpoints.add(spawnPointMap);
+                            }
+                        }
+                        config.setSpawnpoints(spawnpoints);
                         return config;
                     }
 
                     @Override
                     public void save(RoomConfig config) {
-                        yml.set("room_id", config.getRoomId());
                         yml.set("name", config.getName());
                         yml.set("type", config.getType());
                         yml.set("structure", config.getStructure());
@@ -74,6 +90,8 @@ public class RoomFile extends FileProviderList<FileProvider<RoomConfig>> {
                         yml.set("base_score", config.getBaseScore());
                         yml.set("early_completion_multiplier", config.getEarlyCompletionMultiplier());
                         yml.set("player_spawn", config.getPlayerSpawn());
+                        yml.set("spawn_points", config.getSpawnpoints());
+
                         try {
                             yml.save(file);
                         } catch (Exception e) {
@@ -102,7 +120,7 @@ public class RoomFile extends FileProviderList<FileProvider<RoomConfig>> {
         configs.put(roomId, config);
         
         // 將配置轉換成實際的房間物件
-        AbstractsRoom room = convertToRoom(roomId, config);
+        AbstractRoom room = convertToRoom(roomId, config);
         rooms.put(roomId, room);
         
         return config;
@@ -124,7 +142,7 @@ public class RoomFile extends FileProviderList<FileProvider<RoomConfig>> {
      * @param config 房間配置
      * @return 房間物件
      */
-    private AbstractsRoom convertToRoom(String roomId, RoomConfig config) {
+    private AbstractRoom convertToRoom(String roomId, RoomConfig config) {
         // 根據房間類型創建對應的房間物件
         switch (config.getType().toLowerCase()) {
             case "annihilation":
@@ -171,7 +189,7 @@ public class RoomFile extends FileProviderList<FileProvider<RoomConfig>> {
         configs.put(roomId, config);
         
         // 更新房間物件
-        AbstractsRoom room = convertToRoom(roomId, config);
+        AbstractRoom room = convertToRoom(roomId, config);
         rooms.put(roomId, room);
     }
 
@@ -189,7 +207,7 @@ public class RoomFile extends FileProviderList<FileProvider<RoomConfig>> {
      * @param roomId 房間ID
      * @return 房間物件
      */
-    public AbstractsRoom getRoom(String roomId) {
+    public AbstractRoom getRoom(String roomId) {
         return rooms.get(roomId);
     }
     
@@ -205,7 +223,7 @@ public class RoomFile extends FileProviderList<FileProvider<RoomConfig>> {
      * 獲取所有房間物件
      * @return 房間物件列表
      */
-    public java.util.Map<String, AbstractsRoom> getAllRooms() {
+    public java.util.Map<String, AbstractRoom> getAllRooms() {
         return rooms;
     }
 }

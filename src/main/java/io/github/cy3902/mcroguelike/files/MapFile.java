@@ -5,7 +5,7 @@ import io.github.cy3902.mcroguelike.abstracts.FileProvider;
 import io.github.cy3902.mcroguelike.abstracts.FileProviderList;
 import io.github.cy3902.mcroguelike.config.MapConfig;
 import io.github.cy3902.mcroguelike.map.Map;
-import io.github.cy3902.mcroguelike.abstracts.AbstractsMap;
+import io.github.cy3902.mcroguelike.abstracts.AbstractMap;
 
 import java.io.File;
 import java.util.HashMap;
@@ -18,7 +18,7 @@ import java.util.logging.Level;
 public class MapFile extends FileProviderList<FileProvider<MapConfig>> {
     private static final String MAP_DIRECTORY = "Map";
     private final java.util.Map<String, MapConfig> configs = new HashMap<>();
-    private final java.util.Map<String, AbstractsMap> maps = new HashMap<>();
+    private final java.util.Map<String, AbstractMap> maps = new HashMap<>();
     private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
 
     /**
@@ -102,7 +102,7 @@ public class MapFile extends FileProviderList<FileProvider<MapConfig>> {
         configs.put(mapId, config);
         
         // 將配置轉換成實際的地圖物件
-        AbstractsMap map = convertToMap(mapId, config);
+        AbstractMap map = convertToMap(mapId, config);
         maps.put(mapId, map);
         
         
@@ -125,7 +125,7 @@ public class MapFile extends FileProviderList<FileProvider<MapConfig>> {
      * @param config 地圖配置
      * @return 地圖物件
      */
-    private AbstractsMap convertToMap(String mapId, MapConfig config) {
+    private AbstractMap convertToMap(String mapId, MapConfig config) {
         // 創建地圖物件 - 簡化版本
         return new Map(
             mapId,  // 使用地圖ID
@@ -157,7 +157,7 @@ public class MapFile extends FileProviderList<FileProvider<MapConfig>> {
         configs.put(mapId, config);
         
         // 更新地圖物件
-        AbstractsMap map = convertToMap(mapId, config);
+        AbstractMap map = convertToMap(mapId, config);
         maps.put(mapId, map);
         
     }
@@ -176,7 +176,7 @@ public class MapFile extends FileProviderList<FileProvider<MapConfig>> {
      * @param mapId 地圖ID
      * @return 地圖物件
      */
-    public AbstractsMap getMap(String mapId) {
+    public AbstractMap getMap(String mapId) {
         return maps.get(mapId);
     }
     
@@ -192,7 +192,7 @@ public class MapFile extends FileProviderList<FileProvider<MapConfig>> {
      * 獲取所有地圖物件
      * @return 地圖物件列表
      */
-    public java.util.Map<String, AbstractsMap> getAllMaps() {
+    public java.util.Map<String, AbstractMap> getAllMaps() {
         return maps;
     }
 }

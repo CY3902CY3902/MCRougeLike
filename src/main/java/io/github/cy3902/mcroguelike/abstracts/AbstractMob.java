@@ -1,11 +1,10 @@
 package io.github.cy3902.mcroguelike.abstracts;
 
-import org.bukkit.entity.LivingEntity;
 
 /**
  * 抽象怪物類別，定義了怪物的基本屬性和行為
  */
-public abstract class AbstractsMob {
+public abstract class AbstractMob {
     
     protected String mobId;                 // 怪物唯一識別ID
     protected double healthMultiplier;      // 血量加成倍率 (0.0-1.0)
@@ -13,7 +12,7 @@ public abstract class AbstractsMob {
     protected double speedMultiplier;       // 移動速度加成倍率 (0.0-1.0)
     protected boolean isKeyMob;             // 是否為關鍵怪物(狙殺任務中的目標)
     protected boolean isGuardTarget;        // 是否為需要守護的目標(防守任務中的VIP)
-    protected LivingEntity entity;          // 怪物實體
+    protected int count;                    // 怪物數量
 
     /**
      * 建構子，初始化怪物屬性
@@ -23,32 +22,19 @@ public abstract class AbstractsMob {
      * @param speedMultiplier 速度倍率
      * @param isKeyMob 是否為關鍵怪物
      * @param isGuardTarget 是否為守護目標
+     * @param count 怪物數量
      */
-    public AbstractsMob(String mobId, double healthMultiplier, double damageMultiplier, 
-                        double speedMultiplier, boolean isKeyMob, boolean isGuardTarget) {
+    public AbstractMob(String mobId, double healthMultiplier, double damageMultiplier, 
+                        double speedMultiplier, boolean isKeyMob, boolean isGuardTarget, int count) {
         this.mobId = mobId;
         this.healthMultiplier = healthMultiplier;
         this.damageMultiplier = damageMultiplier;
         this.speedMultiplier = speedMultiplier;
         this.isKeyMob = isKeyMob;
         this.isGuardTarget = isGuardTarget;
+        this.count = count;
     }
 
-    /**
-     * 取得怪物實體
-     * @return 怪物實體
-     */
-    public LivingEntity getEntity() {
-        return entity;
-    }
-
-    /**
-     * 設定怪物實體
-     * @param entity 怪物實體
-     */
-    public void setEntity(LivingEntity entity) {
-        this.entity = entity;
-    }
 
     /**
      * 取得怪物ID

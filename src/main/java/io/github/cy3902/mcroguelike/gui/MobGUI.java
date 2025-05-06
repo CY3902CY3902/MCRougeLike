@@ -1,6 +1,7 @@
 package io.github.cy3902.mcroguelike.gui;
 
 import io.github.cy3902.mcroguelike.MCRogueLike;
+import io.github.cy3902.mcroguelike.config.Lang;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -20,14 +21,16 @@ import java.util.Map;
 import java.util.HashMap;
 
 public class MobGUI {
-    private final MCRogueLike plugin;
+    private final MCRogueLike mcRogueLike;
     private final File mobDir;
     private final Map<String, FileConfiguration> mobConfigs;
+    private final Lang lang;
 
     public MobGUI() {
-        this.plugin = MCRogueLike.getInstance();
-        this.mobDir = new File(plugin.getDataFolder() + "/Mob");
+        this.mcRogueLike = MCRogueLike.getInstance();
+        this.mobDir = new File(mcRogueLike.getDataFolder() + "/Mob");
         this.mobConfigs = new HashMap<>();
+        this.lang = mcRogueLike.getLang();
         loadConfigs();
     }
 
@@ -60,7 +63,7 @@ public class MobGUI {
             File file = new File(mobDir, mobId + ".yml");
             config.save(file);
         } catch (IOException e) {
-            plugin.getLogger().severe("無法保存怪物配置 " + mobId + ": " + e.getMessage());
+            mcRogueLike.getLogger().severe("無法保存怪物配置 " + mobId + ": " + e.getMessage());
         }
     }
 
@@ -308,16 +311,16 @@ public class MobGUI {
         player.closeInventory();
         switch (field) {
             case "mob_name":
-                player.sendMessage(ChatColor.YELLOW + "請在聊天框中輸入怪物的名稱：");
+                handleMobNameInput(player);
                 break;
             case "mob_id":
-                player.sendMessage(ChatColor.YELLOW + "請在聊天框中輸入怪物的ID：");
+                handleMobIdInput(player);
                 break;
             case "multiplier":
-                player.sendMessage(ChatColor.YELLOW + "請在聊天框中輸入倍率加成（例如：1.5）：");
+                handleMobMultiplierInput(player);
                 break;
             case "spawn_amount":
-                player.sendMessage(ChatColor.YELLOW + "請在聊天框中輸入生成數量：");
+                handleMobCountInput(player);
                 break;
         }
     }
@@ -328,5 +331,21 @@ public class MobGUI {
      */
     public Map<String, FileConfiguration> getMobConfigs() {
         return mobConfigs;
+    }
+
+    public void handleMobNameInput(Player player) {
+        player.sendMessage(lang.getMessage("mob.gui.enter_name"));
+    }
+
+    public void handleMobIdInput(Player player) {
+        player.sendMessage(lang.getMessage("mob.gui.enter_id"));
+    }
+
+    public void handleMobMultiplierInput(Player player) {
+        player.sendMessage(lang.getMessage("mob.gui.enter_multiplier"));
+    }
+
+    public void handleMobCountInput(Player player) {
+        player.sendMessage(lang.getMessage("mob.gui.enter_count"));
     }
 } 
