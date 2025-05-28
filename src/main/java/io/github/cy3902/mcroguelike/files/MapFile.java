@@ -92,7 +92,7 @@ public class MapFile extends FileProviderList<FileProvider<MapConfig>> {
      * @param mapId 地圖ID
      * @return 地圖配置
      */
-    public MapConfig loadMap(String mapId) {
+    private MapConfig loadMap(String mapId) {
         FileProvider<MapConfig> provider = getProvider(mapId);
         if (provider == null) {
             return null;

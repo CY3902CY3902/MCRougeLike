@@ -22,7 +22,7 @@ public abstract class AbstractSQL {
      * 執行查詢操作
      * @param sql SQL查詢語句
      * @param params 查詢參數
-     * @return 查詢結果
+     * @return 查詢結果，多列數據以逗號分隔
      */
     public abstract String select(String sql, String[] params);
 

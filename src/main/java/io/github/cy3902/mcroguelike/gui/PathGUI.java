@@ -1,27 +1,20 @@
 package io.github.cy3902.mcroguelike.gui;
 
 import io.github.cy3902.mcroguelike.path.Path;
-import io.github.cy3902.mcroguelike.room.SurvivalRoom;
 import io.github.cy3902.mcroguelike.abstracts.AbstractPath;
 import io.github.cy3902.mcroguelike.abstracts.AbstractPath.AbstractsNode;
-import io.github.cy3902.mcroguelike.abstracts.AbstractRoom;
-import io.github.cy3902.mcroguelike.abstracts.AbstractRoom.RoomType;
-import io.github.cy3902.mcroguelike.abstracts.AbstractMap;
 import io.github.cy3902.mcroguelike.MCRogueLike;
 import io.github.cy3902.mcroguelike.config.Lang;
 import io.github.cy3902.mcroguelike.files.PathFile;
-import io.github.cy3902.mcroguelike.manager.game.GameStartManager;
-import io.github.cy3902.mcroguelike.manager.room.RoomManager;
-import io.github.cy3902.mcroguelike.manager.room.SurvivalRoomManager;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.Location;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import java.util.*;
+import java.util.logging.Level;
 
 public class PathGUI {
 
@@ -98,7 +91,7 @@ public class PathGUI {
         // 計算當前頁面要顯示的層級範圍
         int startLevel = currentPage * 5;
         int endLevel = Math.min(startLevel + 5, nodesByLevel.size());
-        
+
         // 顯示每一層的節點
         for (int level = startLevel; level < endLevel; level++) {
             List<AbstractsNode> nodes = nodesByLevel.get(level);
@@ -154,7 +147,7 @@ public class PathGUI {
                 }
             }
         }
-        
+
         return nodesByLevel;
     }
 
@@ -195,7 +188,7 @@ public class PathGUI {
         }
         
         // 下一頁按鈕
-        if (currentPage < totalPages - 1) {
+        if (currentPage + 1 < totalPages) {
             ItemStack nextButton = new ItemStack(Material.ARROW);
             ItemMeta nextMeta = nextButton.getItemMeta();
             nextMeta.setDisplayName(lang.getMessage("path.gui.next_page"));
@@ -208,9 +201,17 @@ public class PathGUI {
         ItemMeta pageMeta = pageInfo.getItemMeta();
         pageMeta.setDisplayName(lang.getMessage("path.gui.page_info")
             .replace("%current%", String.valueOf(currentPage + 1))
-            .replace("%total%", String.valueOf(totalPages + 1)));
+            .replace("%total%", String.valueOf(totalPages)));
         pageInfo.setItemMeta(pageMeta);
         gui.setItem(49, pageInfo);
+
+
+        // 刪除路徑
+        ItemStack deletePath = new ItemStack(Material.BARRIER);
+        ItemMeta deleteMeta = deletePath.getItemMeta();
+        deleteMeta.setDisplayName(lang.getMessage("path.gui.delete_path"));
+        deletePath.setItemMeta(deleteMeta);
+        gui.setItem(47, deletePath);
     }
 
     private ItemStack createNodeItem(AbstractsNode node, Material material, String status) {
@@ -256,70 +257,6 @@ public class PathGUI {
         return item;
     }
 
-    public void handleNavigationClick(Player player, ItemStack clickedItem) {
-        if (!currentPages.containsKey(player)) {
-            openGUI(player);
-            return;
-        }
-        
-        int currentPage = currentPages.get(player);
-        
-        if (clickedItem.getItemMeta().getDisplayName().equals(lang.getMessage("path.gui.previous_page"))) {
-            currentPages.put(player, currentPage - 1);
-        } else if (clickedItem.getItemMeta().getDisplayName().equals(lang.getMessage("path.gui.next_page"))) {
-            currentPages.put(player, currentPage + 1);
-        }
-    }
-
-    public void handleNodeClick(Player player, ItemStack clickedItem) {
-        String itemName = clickedItem.getItemMeta().getDisplayName();
-        if (!itemName.startsWith(lang.getMessage("path.gui.node_name").replace("%value%", ""))) return;
-        
-        int nodeValue = Integer.parseInt(itemName.substring(lang.getMessage("path.gui.node_name").replace("%value%", "").length()));
-        AbstractsNode clickedNode = findNodeByValue(nodeValue);
-        
-        if (clickedNode == null) return;
-        
-        if (!availableNodes.containsKey(player)) {
-            openGUI(player);
-            return;
-        }
-        
-        Set<AbstractsNode> available = availableNodes.get(player);
-        if (available != null && available.contains(clickedNode)) {
-            // 更新已選節點
-            selectedNodes.put(player, clickedNode);
-            
-            // 更新可用節點
-            Set<AbstractsNode> newAvailable = new HashSet<>(available);
-            newAvailable.remove(clickedNode);
-            newAvailable.addAll(clickedNode.getChildren());
-            availableNodes.put(player, newAvailable);
-            
-            // 開始遊戲
-            startGame(player);
-            
-            player.sendMessage(lang.getMessage("path.gui.node_selected").replace("%node%", String.valueOf(nodeValue)));
-        }
-    }
-
-    private void startGame(Player player) {
-        // 獲取選中的節點
-        AbstractsNode selectedNode = selectedNodes.get(player);
-        if (selectedNode == null) {
-            player.sendMessage(lang.getMessage("path.gui.select_node_first"));
-            return;
-        }
-
-        if(selectedNode.getRoom().getType().equals(RoomType.Survival)){
-            GameStartManager gameStartManager = new GameStartManager(path, selectedNode.getRoom(), false);
-            gameStartManager.start(Arrays.asList(player));
-        }
-
-        // 關閉GUI
-        player.closeInventory();
-    }
-
 
     public void cleanupPlayerData(Player player) {
         //刪除此物件
@@ -328,7 +265,7 @@ public class PathGUI {
         currentPages.remove(player);
     }
 
-    private AbstractsNode findNodeByValue(int value) {
+    public AbstractsNode findNodeByValue(int value) {
         Queue<AbstractsNode> queue = new LinkedList<>();
         queue.add(path.getRoot());
         Set<AbstractsNode> visited = new HashSet<>();
@@ -351,27 +288,23 @@ public class PathGUI {
         return null;
     }
 
-    public void handleNodeSelection(Player player, int nodeValue) {
-        if (nodeValue < 0) {
-            player.sendMessage(lang.getMessage("path.gui.select_node_first"));
-            return;
-        }
-        player.sendMessage(lang.getMessage("path.gui.node_selected").replace("%node%", String.valueOf(nodeValue)));
+
+    
+
+
+    public Map<Player, AbstractsNode> getSelectedNodes() {
+        return selectedNodes;
     }
 
-    public void handleRoomGeneration(Player player, String mapId, String roomId) {
-        if (mapId == null || roomId == null) {
-            player.sendMessage(lang.getMessage("path.gui.invalid_map_room"));
-            return;
-        }
-        if (mcroguelike.getMapFile().getMap(mapId) == null) {
-            player.sendMessage(lang.getMessage("path.gui.map_not_found"));
-            return;
-        }
-        if (mcroguelike.getRoomFile().getRoom(roomId) == null) {
-            player.sendMessage(lang.getMessage("path.gui.room_not_found"));
-            return;
-        }
-        player.sendMessage(lang.getMessage("path.gui.room_generated").replace("%room%", roomId));
+    public Map<Player, Set<AbstractsNode>> getAvailableNodes() {
+        return availableNodes;
+    }
+
+    public Map<Player, Integer> getCurrentPages() {
+        return currentPages;
+    }
+
+    public AbstractPath getPath() {
+        return path;
     }
 }

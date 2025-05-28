@@ -1,5 +1,8 @@
 package io.github.cy3902.mcroguelike.map;
 
+import java.util.logging.Level;
+
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import io.github.cy3902.mcroguelike.MCRogueLike;
@@ -49,8 +52,7 @@ public class MapLocation {
         if (locationString == null) {
             return null;
         }
-
-        return parseLocationString(locationString);
+        return parseLocationString(locationString, map.getName());
     }
 
     /**
@@ -80,25 +82,23 @@ public class MapLocation {
      * @param locationString 位置字符串
      * @return Location對象，解析失敗則返回null
      */
-    private Location parseLocationString(String locationString) {
+    private Location parseLocationString(String locationString, String worldString) {
         String[] parts = locationString.split(",");
-        if (parts.length < 6) {
+        if (parts.length < 2) {
             return null;
         }
 
         try {
-            World world = MCRogueLike.getInstance().getServer().getWorld(parts[0].trim());
+            World world = Bukkit.getWorld(worldString);
             if (world == null) {
                 return null;
             }
 
-            double x = Double.parseDouble(parts[1].trim());
-            double y = Double.parseDouble(parts[2].trim());
-            double z = Double.parseDouble(parts[3].trim());
-            float yaw = Float.parseFloat(parts[4].trim());
-            float pitch = Float.parseFloat(parts[5].trim());
+            double x = Double.parseDouble(parts[0].trim());
+            double y = Double.parseDouble(parts[1].trim());
+            double z = Double.parseDouble(parts[2].trim());
 
-            return new Location(world, x, y, z, yaw, pitch);
+            return new Location(world, x, y, z, 0, 0);
         } catch (NumberFormatException e) {
             return null;
         }

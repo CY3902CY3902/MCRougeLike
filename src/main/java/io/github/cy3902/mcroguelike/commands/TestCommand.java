@@ -3,7 +3,8 @@ package io.github.cy3902.mcroguelike.commands;
 import io.github.cy3902.mcroguelike.abstracts.AbstractCommand;
 import io.github.cy3902.mcroguelike.abstracts.AbstractPath;
 import io.github.cy3902.mcroguelike.gui.PathGUI;
-import io.github.cy3902.mcroguelike.manager.PlayerPathManager;
+import io.github.cy3902.mcroguelike.manager.PartyPathManager;
+import io.github.cy3902.mcroguelike.party.Party;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -30,15 +31,30 @@ public class TestCommand extends AbstractCommand {
             sender.sendMessage(lang.getMessage("player_only"));
             return;
         }
-
         Player player = (Player) sender;
-        
-        PlayerPathManager playerPathManager = new PlayerPathManager(player);
-        AbstractPath path = playerPathManager.getPath();
+
+        // 獲取玩家所在的Party
+        Party party = mcRogueLike.getPlayerPartyRegister().get(player.getUniqueId());
+        if (party == null) {
+            player.sendMessage(lang.getMessage("path.gui.no_party"));
+            return;
+        }
+
+        // 獲取PartyPathManager
+        PartyPathManager partyPathManager = mcRogueLike.getPartyPathManagerRegister().get(party.getPartyID());
+        if (partyPathManager == null) {
+            partyPathManager = new PartyPathManager(party);
+            mcRogueLike.addPartyPathManagerRegister(party.getPartyID(), partyPathManager);
+        }
+
+        // 獲取路徑
+        AbstractPath path = partyPathManager.getPath();
         if (path == null) {
             path = mcRogueLike.getPathFile().getPath(args[1]); 
-            playerPathManager.setPath(path);
+            partyPathManager.setPath(path);
         }
+
+        // 開啟GUI
         PathGUI gui = new PathGUI(path);
         gui.openGUI(player);
     }

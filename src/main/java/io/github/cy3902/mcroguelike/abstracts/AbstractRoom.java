@@ -7,7 +7,8 @@ import io.github.cy3902.mcroguelike.schem.Schem;
 import io.github.cy3902.mcroguelike.utils.LocationUtils;
 
 import java.io.File;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.bukkit.Location;
@@ -41,17 +42,45 @@ public abstract class AbstractRoom {
         SniperMission   //狙殺
     }
 
+    /**
+     * 生成點類，用於存儲生成點信息
+     */
+    public static class SpawnPoint {
+        private AbstractSpawnpoint spawnpoint;
+        private String location;
+
+        public SpawnPoint(AbstractSpawnpoint spawnpoint, String location) {
+            this.spawnpoint = spawnpoint;
+            this.location = location;
+        }
+
+        public AbstractSpawnpoint getSpawnpoint() {
+            return spawnpoint;
+        }
+
+        public String getLocation() {
+            return location;
+        }
+
+        public void setLocation(String location) {
+            this.location = location;
+        }
+
+        public void setSpawnpoint(AbstractSpawnpoint spawnpoint) {
+            this.spawnpoint = spawnpoint;
+        }
+    }
+
     private final String roomId;
     private final String name;
     private final String structureName;
     private final RoomType type;
-    private final HashMap<AbstractSpawnpoint, Location> spawnPoints;
     private final int minFloor;
     private final int maxFloor;
     private final int timeLimit;
     private final int baseScore;
     private final String playerSpawnPoint;
-
+    private List<SpawnPoint> spawnPoints;
 
     private SpawnPointManager spawnPointManager;
     private ScoreManager scoreManager;
@@ -72,7 +101,7 @@ public abstract class AbstractRoom {
             String name,
             String structureName,
             RoomType type,
-            HashMap<AbstractSpawnpoint, Location> spawnPoints,
+            List<SpawnPoint> spawnPoints,
             int minFloor,
             int maxFloor,
             int timeLimit,
@@ -83,15 +112,14 @@ public abstract class AbstractRoom {
         this.name = name;
         this.structureName = structureName;
         this.type = type;
-        this.spawnPoints = spawnPoints;
+        this.spawnPoints = spawnPoints != null ? spawnPoints : new ArrayList<>();
         this.minFloor = minFloor;
         this.maxFloor = maxFloor;
         this.timeLimit = timeLimit;
         this.baseScore = baseScore;
         this.playerSpawnPoint = playerSpawnPoint;
+        
     }
-
-
 
     /**
      * 取得關卡時限
@@ -101,13 +129,6 @@ public abstract class AbstractRoom {
         return timeLimit;
     }
 
-    /**
-     * 取得插件實例
-     * @return 插件實例
-     */
-    public MCRogueLike getPlugin() {
-        return MCRogueLike.getInstance();
-    }
 
     /**
      * 取得房間ID
@@ -131,7 +152,7 @@ public abstract class AbstractRoom {
             }
             return;
         }
-        Schem schem = new Schem(structureName, schemFile, location);
+        Schem schem = new Schem(structureName, schemFile, location.getWorld());
         schem.setPasteCallback(callback);
         schem.paste(location);
     }
@@ -184,15 +205,38 @@ public abstract class AbstractRoom {
         return LocationUtils.stringToLocation(world, playerSpawnPoint);
     }
 
-
     /**
      * 取得生成點列表
      * @return 生成點列表
      */
-    public HashMap<AbstractSpawnpoint, Location> getSpawnPoints() {
+    public List<SpawnPoint> getSpawnPoints() {
         return spawnPoints;
     }
 
+    /**
+     * 設置生成點列表
+     * @param spawnPoints 生成點列表
+     */
+    public void setSpawnPoints(List<SpawnPoint> spawnPoints) {
+        this.spawnPoints = spawnPoints;
+    }
+
+    /**
+     * 添加生成點
+     * @param spawnpoint 生成點
+     * @param location 位置
+     */
+    public void addSpawnPoint(AbstractSpawnpoint spawnpoint, String location) {
+        spawnPoints.add(new SpawnPoint(spawnpoint, location));
+    }
+
+    /**
+     * 移除生成點
+     * @param spawnpoint 生成點
+     */
+    public void removeSpawnPoint(AbstractSpawnpoint spawnpoint) {
+        spawnPoints.removeIf(sp -> sp.getSpawnpoint().equals(spawnpoint));
+    }
 
     public SpawnPointManager getSpawnPointManager() {
         return spawnPointManager;

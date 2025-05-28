@@ -1,35 +1,39 @@
 package io.github.cy3902.mcroguelike.manager;
 
-import org.bukkit.entity.Player;
 import io.github.cy3902.mcroguelike.MCRogueLike;
 import io.github.cy3902.mcroguelike.abstracts.AbstractPath;
+import io.github.cy3902.mcroguelike.party.Party;
+
+import org.bukkit.entity.Player;
 import org.json.JSONObject;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 
-public class PlayerPathManager {
+public class PartyPathManager {
     private final MCRogueLike mcroguelike;
-    private final Player player;
+    private final Party party;
     private AbstractPath path;
+    private List<UUID> pathPlayers;
 
-    public PlayerPathManager(Player player) {
+    public PartyPathManager(Party party) {
         this.mcroguelike = MCRogueLike.getInstance();
-        this.player = player;
+        this.party = party;
         this.path = null;
+        this.pathPlayers = new ArrayList<>();
     }
 
     public void setPath(AbstractPath abstractPath) {
-        if (abstractPath == null) {
-            return;
-        }
-
         // 檢查是否已存在路徑
         String existingPath = mcroguelike.getSql().select(
-            "SELECT path FROM " + "mcroguelike_player_path" + " WHERE player = ?",
-            new String[]{player.getUniqueId().toString()}
+            "SELECT path FROM " + "mcroguelike_party_path" + " WHERE party_uuid = ?",
+            new String[]{party.getPartyID().toString()}
         );
 
         if (existingPath == null) {
@@ -37,29 +41,34 @@ public class PlayerPathManager {
             abstractPath.generateTree();
 
             // 將路徑轉換為 JSON
-            String pathJson = abstractPath.convertPathToJson();
+            String pathJson = abstractPath.convertPathToJson(party);
+
+            pathPlayers = party.getMembers().stream()
+                .map(Player::getUniqueId)
+                .collect(Collectors.toList());
 
             // 插入新路徑
             mcroguelike.getSql().update(
-                "INSERT INTO " + "mcroguelike_player_path" + " (player, path) VALUES (?, ?)",
-                new String[]{player.getUniqueId().toString(), player.getUniqueId().toString()}
+                "INSERT INTO " + "mcroguelike_party_path" + " (party_uuid, path) VALUES (?, ?)",
+                new String[]{party.getPartyID().toString(), abstractPath.getPathUUID().toString()}
             );
 
             // 創建並寫入檔案
-            savePathToFile(player.getUniqueId().toString(), pathJson);
+            savePathToFile(abstractPath.getPathUUID().toString(), pathJson);
             
             this.path = abstractPath;
         } else {
             // 從數據庫讀取 JSON 數據檔案名稱
             String pathJson = mcroguelike.getSql().select(
-                "SELECT path FROM " + "mcroguelike_player_path" + " WHERE player = ?",
-                new String[]{player.getUniqueId().toString()}
+                "SELECT path FROM " + "mcroguelike_party_path" + " WHERE party_uuid = ?",
+                new String[]{party.getPartyID().toString()}
             );
 
             if (pathJson != null) {
                 AbstractPath loadedPath = loadPathFromFile(pathJson);
                 if (loadedPath != null) {
                     this.path = loadedPath;
+                    pathPlayers.addAll(loadedPath.getPartyMembers());
                 } else {
                     // 如果讀取失敗，刪除舊路徑並重新生成
                     deletePath(pathJson);
@@ -72,8 +81,8 @@ public class PlayerPathManager {
     public AbstractPath getPath() {
         if (this.path == null) {
             String existingPath = mcroguelike.getSql().select(
-                "SELECT path FROM " + "mcroguelike_player_path" + " WHERE player = ?",
-                new String[]{player.getUniqueId().toString()}
+                "SELECT path FROM " + "mcroguelike_party_path" + " WHERE party_uuid = ?",
+                new String[]{party.getPartyID().toString()}
             );
 
             if (existingPath != null) {
@@ -85,10 +94,10 @@ public class PlayerPathManager {
         return this.path;
     }
 
-    private void deletePath(String pathJson) {
+    public void deletePath(String pathJson) {
         mcroguelike.getSql().delete(
-            "DELETE FROM " + "mcroguelike_player_path" + " WHERE player = ?",
-            new String[]{player.getUniqueId().toString()}
+            "DELETE FROM " + "mcroguelike_party_path" + " WHERE party_uuid = ?",
+            new String[]{party.getPartyID().toString()}
         );
         // 刪除檔案
         File file = new File(mcroguelike.getDataFolder(), "PlayerPath/" + pathJson + ".json");
@@ -123,7 +132,6 @@ public class PlayerPathManager {
     /**
      * 從檔案讀取路徑
      * @param fileName 檔案名稱
-     * @param defaultPath 預設路徑（用於類型轉換）
      * @return 讀取到的路徑，如果讀取失敗則返回 null
      */
     private AbstractPath loadPathFromFile(String fileName) {

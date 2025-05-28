@@ -69,9 +69,9 @@ public class MySQL extends AbstractSQL {
             e.printStackTrace();
         }
 
-        // 創建玩家路徑表格
-        String createPlayerPathTableSQL = "CREATE TABLE IF NOT EXISTS mcroguelike_player_path ("
-                + "player VARCHAR(255) NOT NULL PRIMARY KEY, "
+        // 創建隊伍路徑表格
+        String createPlayerPathTableSQL = "CREATE TABLE IF NOT EXISTS mcroguelike_party_path ("
+                + "party_uuid VARCHAR(255) NOT NULL PRIMARY KEY, "
                 + "path VARCHAR(255) NOT NULL"
                 + ");";
 
@@ -80,6 +80,21 @@ public class MySQL extends AbstractSQL {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        // 創建隊伍成員表格
+        String createPartyMemberTableSQL = "CREATE TABLE IF NOT EXISTS mcroguelike_party_member ("
+                + "party_uuid VARCHAR(255) NOT NULL, "
+                + "member_uuid VARCHAR(255) NOT NULL, "
+                + "is_leader Boolean NOT NULL DEFAULT false, "
+                + "PRIMARY KEY (party_uuid, member_uuid)"
+                + ");";
+
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(createPartyMemberTableSQL);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
     }
 
     /**
@@ -136,7 +151,15 @@ public class MySQL extends AbstractSQL {
             }
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return rs.getString(1);
+                StringBuilder result = new StringBuilder();
+                int columnCount = rs.getMetaData().getColumnCount();
+                for (int i = 1; i <= columnCount; i++) {
+                    if (i > 1) {
+                        result.append(",");
+                    }
+                    result.append(rs.getString(i));
+                }
+                return result.toString();
             }
         } catch (SQLException e) {
             e.printStackTrace();

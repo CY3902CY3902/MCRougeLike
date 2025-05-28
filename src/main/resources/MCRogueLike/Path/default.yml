@@ -1,7 +1,9 @@
 # 路徑生成基本設定
 name: "default_path"            # 路徑名稱  
-max_nodes: 20                    # 最大節點數
+total_nodes: 20                  # 總節點數
 max_branches: 3                  # 每個節點最大分支數
+max_player: 1                    # 最大玩家數量
+min_player: 1                    # 最小玩家數量
 max_height: 5                    # 最大層級數
 special_node_probability: 0.2    # 特殊節點生成機率 (0.0-1.0)
 map_name: "default_map"          # 地圖名稱

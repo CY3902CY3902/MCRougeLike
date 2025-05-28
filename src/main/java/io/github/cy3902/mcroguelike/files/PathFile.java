@@ -56,8 +56,10 @@ public class PathFile extends FileProviderList<FileProvider<PathConfig>> {
                         config.setMaxFloor(yml.getInt("floor.max", 1));
                         
                         // 讀取新增的屬性
-                        config.setMaxNodes(yml.getInt("max_nodes", 10));
+                        config.setTotalNodes(yml.getInt("total_nodes", 10));
                         config.setMaxBranches(yml.getInt("max_branches", 3));
+                        config.setMaxPlayer(yml.getInt("max_player", 1));
+                        config.setMinPlayer(yml.getInt("min_player", 1));
                         config.setMaxHeight(yml.getInt("max_height", 5));
                         config.setSpecialNodeProbability(yml.getDouble("special_node_probability", 0.2));
                         
@@ -84,7 +86,7 @@ public class PathFile extends FileProviderList<FileProvider<PathConfig>> {
                         yml.set("floor.max", config.getMaxFloor());
                         
                         // 保存新增的屬性
-                        yml.set("max_nodes", config.getMaxNodes());
+                        yml.set("total_nodes", config.getTotalNodes());
                         yml.set("max_branches", config.getMaxBranches());
                         yml.set("max_height", config.getMaxHeight());
                         yml.set("special_node_probability", config.getSpecialNodeProbability());
@@ -116,7 +118,7 @@ public class PathFile extends FileProviderList<FileProvider<PathConfig>> {
      * @param pathId 路徑ID
      * @return 路徑配置
      */
-    public PathConfig loadPath(String pathId) {
+    private PathConfig loadPath(String pathId) {
         FileProvider<PathConfig> provider = getProvider(pathId);
         if (provider == null) {
             return null;
@@ -161,8 +163,10 @@ public class PathFile extends FileProviderList<FileProvider<PathConfig>> {
             pathId,
             config.getName(),
             map,
-            config.getMaxNodes(),
+            config.getTotalNodes(),
             config.getMaxBranches(),
+            config.getMaxPlayer(),
+            config.getMinPlayer(),
             config.getMaxHeight(),
             config.getSpecialNodeProbability(),
             config.getRoomNames(),

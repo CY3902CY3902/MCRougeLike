@@ -26,7 +26,7 @@ import java.util.Map;
 public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConfig>> {
     private static final String SPAWNPOINT_DIRECTORY = "Spawnpoint";
     private final java.util.Map<String, SpawnpointConfig> configs = new HashMap<>();
-    private final java.util.Map<String, AbstractSpawnpoint> spawnpoints = new HashMap<>();
+    private java.util.Map<String, AbstractSpawnpoint> spawnpoints = new HashMap<>();
     private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
 
     /**
@@ -92,6 +92,7 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
                         yml.set("max_spawn_amount", config.getMaxSpawnAmount());
 
                         // 保存怪物配置
+                        yml.set("mobs", null); // 清空現有的怪物配置
                         ConfigurationSection mobsSection = yml.createSection("mobs");
                         for (Map.Entry<String, MobConfig> entry : config.getMobs().entrySet()) {
                             ConfigurationSection mobSection = mobsSection.createSection(entry.getKey());
@@ -100,6 +101,8 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
                             mobSection.set("damage_multiplier", mobConfig.getDamageMultiplier());
                             mobSection.set("speed_multiplier", mobConfig.getSpeedMultiplier());
                             mobSection.set("is_boss", mobConfig.isBoss());
+                            mobSection.set("is_guard_target", mobConfig.isGuardTarget());
+                            mobSection.set("count", mobConfig.getCount());
                         }
 
                         try {
@@ -111,6 +114,8 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
                 };
                 addProvider(spawnpointId, provider);
                 loadSpawnpoint(spawnpointId);
+                mcroguelike.getSpawnpointRegister().put(spawnpointId, convertToSpawnpoint(spawnpointId, configs.get(spawnpointId)).getClass());
+                setSpawnpoint(convertToSpawnpoint(spawnpointId, configs.get(spawnpointId)));
             }
         }
     }
@@ -120,7 +125,7 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
      * @param spawnpointId 生成點ID
      * @return 生成點配置
      */
-    public SpawnpointConfig loadSpawnpoint(String spawnpointId) {
+    private SpawnpointConfig loadSpawnpoint(String spawnpointId) {
         FileProvider<SpawnpointConfig> provider = getProvider(spawnpointId);
         if (provider == null) {
             return null;
@@ -128,10 +133,6 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
         
         SpawnpointConfig config = provider.load();
         configs.put(spawnpointId, config);
-        
-        // 將配置轉換成實際的生成點物件
-        AbstractSpawnpoint spawnpoint = convertToSpawnpoint(spawnpointId, config);
-        spawnpoints.put(spawnpointId, spawnpoint);
         
         
         return config;
@@ -144,7 +145,6 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
     public void removeProvider(String spawnpointId) {
         removeProvider(spawnpointId);
         configs.remove(spawnpointId);
-        spawnpoints.remove(spawnpointId);
     }
     
     /**
@@ -169,6 +169,7 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
                 mobConfig.isGuardTarget(),
                 mobConfig.getCount()
             ));
+            
         }
 
         // 創建生成點物件
@@ -194,10 +195,6 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
         provider.save(config);
         configs.put(spawnpointId, config);
         
-        // 更新生成點物件
-        AbstractSpawnpoint spawnpoint = convertToSpawnpoint(spawnpointId, config);
-        spawnpoints.put(spawnpointId, spawnpoint);
-        
     }
 
     /**
@@ -217,7 +214,21 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
     public AbstractSpawnpoint getSpawnpoint(String spawnpointId) {
         return spawnpoints.get(spawnpointId);
     }
+
     
+
+    /**
+     * 設置生成點
+     * @param spawnpoint 生成點
+     * @return 生成點
+     */
+    public AbstractSpawnpoint setSpawnpoint(AbstractSpawnpoint spawnpoint) {
+        spawnpoints.put(spawnpoint.getName(), spawnpoint);
+        return spawnpoint;
+    }
+
+
+
     /**
      * 獲取所有生成點配置
      * @return 生成點配置列表
@@ -226,11 +237,4 @@ public class SpawnpointFile extends FileProviderList<FileProvider<SpawnpointConf
         return configs;
     }
     
-    /**
-     * 獲取所有生成點物件
-     * @return 生成點物件列表
-     */
-    public java.util.Map<String, AbstractSpawnpoint> getAllSpawnpoints() {
-        return spawnpoints;
-    }
 } 

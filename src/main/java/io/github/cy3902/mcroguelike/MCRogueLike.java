@@ -8,24 +8,31 @@ import io.github.cy3902.mcroguelike.abstracts.AbstractSQL;
 import io.github.cy3902.mcroguelike.commands.Commands;
 import io.github.cy3902.mcroguelike.config.ConfigFile;
 import io.github.cy3902.mcroguelike.config.Lang;
+import io.github.cy3902.mcroguelike.event.OnJoin;
+import io.github.cy3902.mcroguelike.event.OnQuit;
 import io.github.cy3902.mcroguelike.files.MapFile;
 import io.github.cy3902.mcroguelike.files.PathFile;
 import io.github.cy3902.mcroguelike.files.RoomFile;
 import io.github.cy3902.mcroguelike.files.SpawnpointFile;
+import io.github.cy3902.mcroguelike.manager.PartyPathManager;
 import io.github.cy3902.mcroguelike.manager.game.GameStartManager;
 import io.github.cy3902.mcroguelike.path.Path;
 import io.github.cy3902.mcroguelike.room.AnnihilationRoom;
 import io.github.cy3902.mcroguelike.room.SurvivalRoom;
 import io.github.cy3902.mcroguelike.utils.FileUtils;
 import io.github.cy3902.mcroguelike.utils.MsgUtils;
+import io.github.cy3902.mcroguelike.party.Party;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.logging.Level;
 
 public final class MCRogueLike extends JavaPlugin {
@@ -41,7 +48,6 @@ public final class MCRogueLike extends JavaPlugin {
     private ConfigFile configFile;
 
     private final MsgUtils msgUtils = new MsgUtils(this);
-    private final List<GameStartManager> gameStartManagers = new ArrayList<>();
 
     //註冊Path
     private HashMap<String, Class<? extends AbstractPath>> pathRegister = new HashMap<>();
@@ -50,7 +56,20 @@ public final class MCRogueLike extends JavaPlugin {
     //註冊Spawnpoint
     private HashMap<String, Class<? extends AbstractSpawnpoint>> spawnpointRegister = new HashMap<>();
 
+    //註冊GameStartManager
+    private HashMap<UUID, GameStartManager> gameStartManagerRegister = new HashMap<>();
 
+    //註冊PartyPathManager
+    private HashMap<UUID, PartyPathManager> partyPathManagerRegister = new HashMap<>();
+
+    //註冊Party
+    private HashMap<UUID, Party> partyRegister = new HashMap<>();
+
+    //註冊Party邀請
+    private HashMap<UUID, List<Party>> partyInviteRegister = new HashMap<>();
+
+    //註冊玩家的party
+    private HashMap<UUID, Party> playerPartyRegister = new HashMap<>();
 
     public MCRogueLike() {
         mcRogueLike = this;
@@ -74,7 +93,8 @@ public final class MCRogueLike extends JavaPlugin {
     }
 
     public void initEssential() throws IOException {
-        
+
+
         // Initialize folders
         File dataFolder = getDataFolder();
         if (!dataFolder.exists()) {
@@ -133,10 +153,10 @@ public final class MCRogueLike extends JavaPlugin {
         mapFile.reloadAll();
         pathFile = new PathFile();
         pathFile.reloadAll();
-        roomFile = new RoomFile();
-        roomFile.reloadAll();
         spawnpointFile = new SpawnpointFile();
         spawnpointFile.reloadAll();
+        roomFile = new RoomFile();
+        roomFile.reloadAll();
 
         //註冊Path
         pathRegister.put("Path", Path.class);
@@ -145,15 +165,22 @@ public final class MCRogueLike extends JavaPlugin {
         roomRegister.put("Survival", SurvivalRoom.class);
         roomRegister.put("Annihilation", AnnihilationRoom.class);
 
-
-
         // Load and apply map rules
         for (AbstractMap map : mapFile.getAllMaps().values()) {
             map.applyMapRules();
         }
 
+        // 註冊事件
+        Bukkit.getPluginManager().registerEvents(new OnJoin(), this);
+        Bukkit.getPluginManager().registerEvents(new OnQuit(), this);
+
         // Register commands
         registerCommands();
+
+        // 重新載入所有玩家的party
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            OnJoin.reloadParty(player);
+        }
     }
 
     private void registerCommands() {
@@ -221,28 +248,108 @@ public final class MCRogueLike extends JavaPlugin {
         return spawnpointFile;
     }
 
-    public List<GameStartManager> getGameStartManagers() {
-        return gameStartManagers;
-    }
-
-    public void addGameStartManager(GameStartManager gameStartManager) {
-        gameStartManagers.add(gameStartManager);
-    }
-
-    public void removeGameStartManager(GameStartManager gameStartManager) {
-        gameStartManagers.remove(gameStartManager);
-    }
-
-    public void clearGameStartManagers() {
-        gameStartManagers.clear();
-    }
-
+    // 獲取Party註冊
     public HashMap<String, Class<? extends AbstractPath>> getPathRegister() {
         return pathRegister;
     }
 
+    // 獲取Room註冊
     public HashMap<String, Class<? extends AbstractRoom>> getRoomRegister() {
         return roomRegister;
     }
+
+    // 獲取Spawnpoint註冊
+    public HashMap<String, Class<? extends AbstractSpawnpoint>> getSpawnpointRegister() {
+        return spawnpointRegister;
+    }
     
+    // 獲取GameStartManager註冊
+    public HashMap<UUID, GameStartManager> getGameStartManagerRegister() {
+        return gameStartManagerRegister;
+    }
+
+    // 添加GameStartManager註冊
+    public void addGameStartManagerRegister(UUID uuid, GameStartManager gameStartManager) {
+        gameStartManagerRegister.put(uuid, gameStartManager);
+    }
+
+    // 移除GameStartManager註冊
+    public void removeGameStartManagerRegister(UUID uuid) {
+        gameStartManagerRegister.remove(uuid);
+    }
+
+    // 獲取Party註冊
+    public HashMap<UUID, Party> getPartyRegister() {
+        return partyRegister;
+    }
+
+    // 添加Party註冊
+    public void addPartyRegister(UUID uuid, Party party) {
+        partyRegister.put(uuid, party);
+    }
+
+    // 移除Party註冊
+    public void removePartyRegister(UUID uuid) {
+        partyRegister.remove(uuid);
+    }
+
+    // 獲取Party邀請註冊
+    public HashMap<UUID, List<Party>> getPartyInviteRegister() {
+        return partyInviteRegister;
+    }
+
+    // 添加Party邀請註冊
+    public void addPartyInviteRegister(UUID uuid, Party party) {
+        if (partyInviteRegister.containsKey(uuid)) {
+            partyInviteRegister.get(uuid).add(party);
+        } else {
+            partyInviteRegister.put(uuid, new ArrayList<>(Arrays.asList(party)));
+        }
+    }
+
+    // 移除Party邀請註冊  
+    public void removePartyInviteRegister(UUID uuid) {
+        partyInviteRegister.remove(uuid);
+    }
+
+    
+    public void removePartyInviteRegister(UUID uuid, Party party) {
+        partyInviteRegister.get(uuid).remove(party);
+    }
+
+    // 獲取玩家的party
+    public HashMap<UUID, Party> getPlayerPartyRegister() {
+        return playerPartyRegister;
+    }
+
+    // 添加玩家的party
+    public void addPlayerPartyRegister(UUID uuid, Party party) {
+        playerPartyRegister.put(uuid, party);
+    }
+
+    // 移除玩家的party
+    public void removePlayerPartyRegister(UUID uuid) {
+        playerPartyRegister.remove(uuid);
+    }
+
+    // 獲取PartyPathManager註冊
+    public HashMap<UUID, PartyPathManager> getPartyPathManagerRegister() {
+        return partyPathManagerRegister;
+    }
+
+    // 添加PartyPathManager註冊
+    public void addPartyPathManagerRegister(UUID uuid, PartyPathManager partyPathManager) {
+        partyPathManagerRegister.put(uuid, partyPathManager);
+    }
+
+    // 移除PartyPathManager註冊
+    public void removePartyPathManagerRegister(UUID uuid) {
+        partyPathManagerRegister.remove(uuid);
+    }
+    
+    
+    
+    
+    
+
 }

@@ -16,18 +16,15 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.Location;
-import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.logging.Level;
+import java.io.File;
 
 public class RoomGUIHandler implements Listener {
     private static RoomGUIHandler instance;
@@ -47,6 +44,9 @@ public class RoomGUIHandler implements Listener {
         WAITING_FOR_ROOM_TYPE
     }
 
+    /**
+     * 構造函數
+     */
     private RoomGUIHandler() {
         this.plugin = MCRogueLike.getInstance();
         this.roomGUI = new RoomGUI();
@@ -58,6 +58,10 @@ public class RoomGUIHandler implements Listener {
         mcroguelike.getServer().getPluginManager().registerEvents(this, mcroguelike);
     }
 
+    /**
+     * 獲取單例實例
+     * @return 單例實例
+     */
     public static RoomGUIHandler getInstance() {
         if (instance == null) {
             instance = new RoomGUIHandler();
@@ -65,11 +69,15 @@ public class RoomGUIHandler implements Listener {
         return instance;
     }
 
+    /**
+     * 處理背包點擊事件
+     * @param event 事件
+     */
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         if (!(event.getWhoClicked() instanceof Player)) return;
-        Player player = (Player) event.getWhoClicked();
         
+        // 如果玩家不在主菜單或編輯菜單中，則不處理
         String title = event.getView().getTitle();
         if (!title.contains(lang.getMessage("room.gui.title")) && !title.contains(lang.getMessage("room.gui.edit_title"))) return;
         
@@ -84,24 +92,22 @@ public class RoomGUIHandler implements Listener {
         }
     }
 
+    /**
+     * 處理主菜單點擊事件
+     * @param event 事件
+     */
     private void handleMainMenuClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
         ItemStack clickedItem = event.getCurrentItem();
         
         if (clickedItem.getType() == Material.ARROW) {
-            if (clickedItem.getItemMeta().getDisplayName().equals(lang.getMessage("room.gui.prev_page"))) {
+            if (clickedItem.getItemMeta().getDisplayName().matches(lang.getMessage("room.gui.prev_page") + " \\d+")) {
                 int currentPage = roomGUI.getPlayerPage(player);
                 roomGUI.openRoomGUI(player, currentPage - 1);
-            } else if (clickedItem.getItemMeta().getDisplayName().equals(lang.getMessage("room.gui.next_page"))) {
+            } else if (clickedItem.getItemMeta().getDisplayName().matches(lang.getMessage("room.gui.next_page") + " \\d+")) {
                 int currentPage = roomGUI.getPlayerPage(player);
                 roomGUI.openRoomGUI(player, currentPage + 1);
             }
-        } else if (clickedItem.getType() == Material.EMERALD && 
-                   clickedItem.getItemMeta().getDisplayName().equals(lang.getMessage("room.gui.create_new"))) {
-            player.closeInventory();
-            player.sendMessage(lang.getMessage("room.gui.enter_value") + lang.getMessage("room.gui.room_name"));
-            inputStates.put(player.getUniqueId(), InputState.WAITING_FOR_INPUT);
-            editingKeys.put(player.getUniqueId(), "new_room");
         } else if (clickedItem.getType() == Material.BOOK) {
             List<String> lore = clickedItem.getItemMeta().getLore();
             if (lore != null && !lore.isEmpty()) {
@@ -112,12 +118,17 @@ public class RoomGUIHandler implements Listener {
                     player.closeInventory();
                     player.sendMessage(lang.getMessage("room.gui.confirm_delete"));
                     inputStates.put(player.getUniqueId(), InputState.WAITING_FOR_INPUT);
-                    handleRoomDelete(player, roomId);
+                    editingKeys.put(player.getUniqueId(), "delete");
+                    editingPlayers.put(player.getUniqueId(), roomId);
                 }
             }
         }
     }
 
+    /**
+     * 處理編輯菜單點擊事件
+     * @param event 事件
+     */
     private void handleEditMenuClick(InventoryClickEvent event) {
         Player player = (Player) event.getWhoClicked();
         ItemStack clickedItem = event.getCurrentItem();
@@ -142,7 +153,7 @@ public class RoomGUIHandler implements Listener {
             player.closeInventory();
             player.sendMessage(lang.getMessage("room.gui.mob_spawn_enter"));
             String roomId = editingPlayers.get(player.getUniqueId());
-            SpawnpointGUIHandler.getInstance().openSpawnpointGUI(player, roomId);
+            SpawnpointGUIHandler.getInstance().openSpawnpointGUI(player, roomId, 0);
 
         } else {
             String setting = getSettingFromItem(clickedItem);
@@ -155,6 +166,10 @@ public class RoomGUIHandler implements Listener {
         }
     }
 
+    /**
+     * 處理玩家聊天事件
+     * @param event 事件
+     */
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
@@ -171,39 +186,34 @@ public class RoomGUIHandler implements Listener {
         }
     }
 
+    /**
+     * 處理文本輸入
+     * @param player 玩家
+     * @param input 輸入
+     */
     private void handleTextInput(Player player, String input) {
         String roomId = editingPlayers.get(player.getUniqueId());
         
         final String key = editingKeys.get(player.getUniqueId());
         if (roomId == null || key == null) return;
 
-        // 處理新房間創建
-        if (key.equals("new_room")) {
-            if (roomFile.getConfig(input) != null) {
-                handleRoomCreate(player, input);
-                return;
-            }
-            roomFile.loadRoom(input);
-            handleRoomCreate(player, input);
-            inputStates.remove(player.getUniqueId());
-            editingKeys.remove(player.getUniqueId());
-            Bukkit.getScheduler().runTask(plugin, () -> roomGUI.openRoomGUI(player));
+        if (key.equals("delete") && input.equals("confirm")) {
+            handleRoomDelete(player, roomId);
             return;
-        }
-
+        }   
         // 處理數值輸入
         if (key.equals("time_limit") || key.equals("baseScore") || key.equals("min_floor") || key.equals("max_floor") || key.equals("early_completion_multiplier")) {
             try {
                 double value = Double.parseDouble(input);
                 handleSettingsUpdate(player, roomId, key, String.valueOf(value));
             } catch (NumberFormatException e) {
-                handleInvalidInput(player);
+                handleInvalidNumber(player);
                 return;
             }
         } else if (key.equals("player_spawn")) {
            // 處理玩家出生點設置
             if (key.equals("player_spawn") && !input.equals("confirm") && !input.equals("cancel")) {
-                player.sendMessage(lang.getMessage("room.gui.invalid_input"));
+                handleInvalidInput(player);
                 return;
              }
             if (key.equals("player_spawn") && input.equals("confirm")) {
@@ -212,11 +222,8 @@ public class RoomGUIHandler implements Listener {
                 handleSettingsUpdate(player, roomId, key, input);
             }
         } else if (key.equals("name") || key.equals("structure")) {
-
             // 處理文本輸入
             handleSettingsUpdate(player, roomId, key, input);
-
-            handleMessage(player, lang.getMessage("room.gui.settings_updated"));
         }
 
         inputStates.remove(player.getUniqueId());
@@ -228,6 +235,11 @@ public class RoomGUIHandler implements Listener {
         });
     }
 
+    /**
+     * 處理位置輸入
+     * @param player 玩家
+     * @param input 輸入
+     */
     private void handleLocationInput(Player player, String input) {
         String roomId = editingPlayers.get(player.getUniqueId());
         if (roomId == null) return;
@@ -253,6 +265,11 @@ public class RoomGUIHandler implements Listener {
         }
     }
 
+    /**
+     * 從物品中獲取設置
+     * @param item 物品
+     * @return 設置
+     */
     private String getSettingFromItem(ItemStack item) {
         if (item == null || !item.hasItemMeta()) return null;
         
@@ -269,6 +286,10 @@ public class RoomGUIHandler implements Listener {
         return null;
     }
 
+    /**
+     * 處理背包打開事件
+     * @param event 事件
+     */
     @EventHandler
     public void onInventoryOpen(InventoryOpenEvent event) {
         if (!(event.getPlayer() instanceof Player)) return;
@@ -292,6 +313,10 @@ public class RoomGUIHandler implements Listener {
         }
     }
 
+    /**
+     * 處理背包關閉事件
+     * @param event 事件
+     */
     @EventHandler
     public void onInventoryClose(InventoryCloseEvent event) {
         if (!(event.getPlayer() instanceof Player)) return;
@@ -325,22 +350,50 @@ public class RoomGUIHandler implements Listener {
         }
     }
 
+    /**
+     * 處理房間刪除
+     * @param player 玩家
+     * @param roomId 房間ID
+     */
     public void handleRoomDelete(Player player, String roomId) {
-        roomGUI.deleteRoom(roomId);
+        File file = new File(plugin.getDataFolder(), "Room/" + roomId + ".yml");
+        if (file.exists()) {
+            file.delete();
+        }
+        roomFile.removeProvider(roomId);
         player.sendMessage(lang.getMessage("room.gui.room_deleted"));
     }
 
+    /**
+     * 處理房間保存
+     * @param player 玩家
+     * @param roomId 房間ID
+     */
     public void handleRoomSave(Player player, String roomId) {
-        roomGUI.saveRoomConfig(roomId);
-        player.sendMessage(lang.getMessage("room.gui.changes_saved"));
-        player.closeInventory();
+        RoomConfig config = roomFile.getConfig(roomId);
+        if (config != null) {
+            roomFile.saveRoom(roomId, config);
+            player.sendMessage(lang.getMessage("room.gui.changes_saved"));
+            player.closeInventory();
+        }
     }
 
+    /**
+     * 處理房間類型更新
+     * @param player 玩家
+     * @param roomId 房間ID
+     * @param type 類型
+     */
     public void handleRoomTypeUpdate(Player player, String roomId, String type) {
         roomFile.getConfig(roomId).setType(type);
         player.sendMessage(lang.getMessage("room.gui.room_type_updated") + type);
     }
 
+    /**
+     * 處理生成點確認
+     * @param player 玩家
+     * @param roomId 房間ID
+     */
     public void handleSpawnPointConfirm(Player player, String roomId) {
         String locationString = player.getLocation().getBlockX() + ", " + 
                               player.getLocation().getBlockY() + ", " + 
@@ -349,26 +402,37 @@ public class RoomGUIHandler implements Listener {
         player.sendMessage(lang.getMessage("room.gui.spawn_set") + locationString);
     }
 
+    /**
+     * 處理生成點取消
+     * @param player 玩家
+     */
     public void handleSpawnPointCancel(Player player) {
         player.sendMessage(lang.getMessage("room.gui.spawn_cancelled"));
     }
 
+    /**
+     * 處理無效輸入
+     * @param player 玩家
+     */
     public void handleInvalidInput(Player player) {
         player.sendMessage(lang.getMessage("room.gui.invalid_input"));
     }
 
-    public void handleRoomCreate(Player player, String roomId) {
-        if (roomFile.getConfig(roomId) != null) {
-            player.sendMessage(lang.getMessage("room.gui.room_exists"));
-            return;
-        }
-        roomFile.loadRoom(roomId);
-        roomFile.getConfig(roomId).setRoomId(roomId);
-        roomFile.getConfig(roomId).setName(roomId);
-        roomFile.getConfig(roomId).setType("Survival");
-        player.sendMessage(lang.getMessage("room.gui.room_created"));
+    /**
+     * 處理無效輸入
+     * @param player 玩家
+     */
+    public void handleInvalidNumber(Player player) {
+        player.sendMessage(lang.getMessage("room.gui.invalid_number"));
     }
 
+    /**
+     * 處理設置更新
+     * @param player 玩家
+     * @param roomId 房間ID
+     * @param setting 設置
+     * @param value 值
+     */
     public void handleSettingsUpdate(Player player, String roomId, String setting, String value) {
         try {
             if (setting.equals("player_spawn")) {
@@ -377,8 +441,15 @@ public class RoomGUIHandler implements Listener {
                 return;
             }
         } catch (NumberFormatException e) {
-            player.sendMessage(lang.getMessage("room.gui.invalid_number"));
+            player.sendMessage(lang.getMessage("room.gui.invalid_input"));
         }
+
+        if (setting.equals("structure")) {
+            roomFile.getConfig(roomId).setStructure(value);
+            player.sendMessage(lang.getMessage("room.gui.settings_updated"));
+            return;
+        }
+
         try {
             double numericValue = Double.parseDouble(value);
           
@@ -401,9 +472,6 @@ public class RoomGUIHandler implements Listener {
                 case "name":
                     roomFile.getConfig(roomId).setName(value);
                     break;
-                case "structure":
-                    roomFile.getConfig(roomId).setStructure(value);
-                    break;
                 default:
                     player.sendMessage(lang.getMessage("room.gui.invalid_setting"));
                     return;
@@ -414,15 +482,42 @@ public class RoomGUIHandler implements Listener {
         }
     }
 
+    /**
+     * 處理消息
+     * @param player 玩家
+     * @param message 消息
+     */
     public void handleMessage(Player player, String message) {
         player.sendMessage(message);
     }
 
+    /**
+     * 獲取正在編輯的房間ID
+     * @param playerId 玩家ID
+     * @return 房間ID
+     */
+    public String getEditingPlayer(UUID playerId) {
+        return editingPlayers.get(playerId);
+    }
+
+    /**
+     * 設置正在編輯的房間ID
+     * @param playerId 玩家ID
+     * @param roomId 房間ID
+     */
     public void setEditingPlayer(UUID playerId, String roomId) {
         editingPlayers.put(playerId, roomId);
     }
-
+    
+    /**
+     * 開啟房間編輯GUI
+     * @param player 玩家
+     * @param roomId 房間ID
+     */
     public void openRoomEditGUI(Player player, String roomId) {
         roomGUI.openRoomEditGUI(player, roomId);
     }
+
+
+
 } 

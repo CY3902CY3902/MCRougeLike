@@ -1,7 +1,7 @@
 package io.github.cy3902.mcroguelike.room;
 
-import io.github.cy3902.mcroguelike.abstracts.AbstractSpawnpoint;
 import io.github.cy3902.mcroguelike.abstracts.AbstractRoom;
+import io.github.cy3902.mcroguelike.abstracts.AbstractRoom.SpawnPoint;
 
 
 import java.util.HashMap;
@@ -32,22 +32,18 @@ public class SurvivalRoom extends AbstractRoom {
             String roomId,
             String roomName,
             String structureName,
-            List<AbstractSpawnpoint> spawnPoints,
+            List<SpawnPoint> spawnPoints,
             int minFloor,
             int maxFloor,
             int timeLimit,
             int baseScore,
             String playerSpawnPoint
     ) {
-        super(roomId, roomName, structureName, RoomType.Survival, new HashMap<>(), minFloor, maxFloor, timeLimit, baseScore, playerSpawnPoint);
+        super(roomId, roomName, structureName, RoomType.Survival, spawnPoints, minFloor, maxFloor, timeLimit, baseScore, playerSpawnPoint);
         this.currentSurvivalTime = 0;
         this.isRunning = false;
         this.isPaused = false;
         this.timeLimit = timeLimit;
         
-        // Convert List to HashMap
-        for (AbstractSpawnpoint spawnPoint : spawnPoints) {
-            getSpawnPoints().put(spawnPoint, null); // Location will be set later
-        }
     }
 }

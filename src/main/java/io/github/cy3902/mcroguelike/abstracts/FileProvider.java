@@ -93,13 +93,6 @@ public abstract class FileProvider<T> {
         return yml;
     }
 
-    /**
-     * 獲取插件實例
-     * @return 插件實例
-     */
-    public Plugin getPlugin() {
-        return this.mcroguelike;
-    }
 
     /**
      * 根據指定路徑從 YAML 配置中取得值

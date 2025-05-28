@@ -1,7 +1,7 @@
 package io.github.cy3902.mcroguelike.abstracts;
 
 import io.github.cy3902.mcroguelike.MCRogueLike;
-
+import io.github.cy3902.mcroguelike.party.Party;
 
 import java.util.*;
 
@@ -11,27 +11,54 @@ import java.util.*;
  */
 public abstract class AbstractPath {
     protected final MCRogueLike mcRogueLike = MCRogueLike.getInstance();
-    protected final String pathId;
+    protected  String pathId;
+    protected  UUID pathUUID;
     protected AbstractsNode root;
-    protected final int totalNodes;
-    protected final int maxBranches;
-    protected final Map<Integer, List<AbstractsNode>> levelNodes;
+    protected int totalNodes;
+    protected int maxBranches;
     protected AbstractMap map;
+    protected int maxPlayer;
+    protected int minPlayer;
+    protected List<UUID> partyMembers;
+    /**
+     * 建構子，初始化路徑類別
+     * @param pathId 路徑ID
+     * @param maxBranches 最大分支數
+     * @param maxPlayer 最大玩家數量
+     * @param minPlayer 最小玩家數量
+     */
+    public AbstractPath(String pathId, int totalNodes, int maxBranches, int maxPlayer, int minPlayer) {
+        this.pathId = pathId;
+        this.totalNodes = totalNodes;
+        this.maxBranches = maxBranches;
+        this.maxPlayer = maxPlayer;
+        this.minPlayer = minPlayer;
+        this.root = null;
+        this.map = null;
+        this.partyMembers = new ArrayList<>();
+        this.pathUUID = UUID.randomUUID();
+    }
 
     /**
      * 建構子，初始化路徑類別
      * @param pathId 路徑ID
-     * @param totalNodes 總節點數
      * @param maxBranches 最大分支數
+     * @param maxPlayer 最大玩家數量
+     * @param minPlayer 最小玩家數量
+     * @param pathUUID 路徑UUID
      */
-    public AbstractPath(String pathId, int totalNodes, int maxBranches) {
+    public AbstractPath(String pathId, int totalNodes, int maxBranches, int maxPlayer, int minPlayer, UUID pathUUID) {
         this.pathId = pathId;
         this.totalNodes = totalNodes;
         this.maxBranches = maxBranches;
-        this.levelNodes = new HashMap<>();
+        this.maxPlayer = maxPlayer;
+        this.minPlayer = minPlayer;
         this.root = null;
         this.map = null;
+        this.partyMembers = new ArrayList<>();
+        this.pathUUID = UUID.randomUUID();
     }
+
 
 
     /**
@@ -47,6 +74,14 @@ public abstract class AbstractPath {
      */
     public abstract void generateTree();
 
+
+    /**
+     * 獲取路徑UUID
+     * @return 路徑UUID
+     */
+    public UUID getPathUUID() {
+        return pathUUID;
+    }
 
     /**
      * 獲取隨機的分支數
@@ -68,24 +103,6 @@ public abstract class AbstractPath {
      */
     protected abstract AbstractsNode createNode(int i, int level, boolean special, boolean isCompleted);
 
-
-    /**
-     * 獲取指定層級的所有節點
-     * @param level 指定的層級
-     * @return 該層級的所有節點列表
-     */
-    public List<AbstractsNode> getNodesByLevel(int level) {
-        return levelNodes.getOrDefault(level, new ArrayList<>());
-    }
-
-
-    /**
-     * 獲取所有層級的節點映射
-     * @return 層級到節點列表的映射
-     */
-    public Map<Integer, List<AbstractsNode>> getAllLevelNodes() {
-        return new HashMap<>(levelNodes);
-    }
 
     /**
      * 獲取根節點
@@ -119,12 +136,51 @@ public abstract class AbstractPath {
         this.map = map;
     }
 
+    /**
+     * 獲取最大玩家數量
+     * @return 最大玩家數量
+     */
+    public int getMaxPlayer() {
+        return maxPlayer;
+    }
+
+    /**
+     * 獲取最小玩家數量
+     * @return 最小玩家數量
+     */
+    public int getMinPlayer() {
+        return minPlayer;
+    }
+
+    /**
+     * 獲取最大節點數
+     * @return 最大節點數
+     */
+    public int getTotalNodes() {
+        return totalNodes;
+    }
+
+    /**
+     * 獲取最大分支數
+     * @return 最大分支數
+     */
+    public int getMaxBranches() {
+        return maxBranches;
+    }
+
+    /**
+     * 獲取玩家列表
+     * @return 玩家列表
+     */
+    public List<UUID> getPartyMembers() {
+        return partyMembers;
+    }
 
     /**
      * 從json 轉換
      * @return json
      */
-    public abstract String convertPathToJson();
+    public abstract String convertPathToJson(Party party);
 
 
     /**
@@ -132,6 +188,22 @@ public abstract class AbstractPath {
      * @param json json
      */
     public abstract boolean convertPathFromJson(String json);
+
+
+    /**
+     * 獲取指定層級的節點數
+     * @param level 指定的層級
+     * @return 該層級的節點數
+     */
+    public abstract List<AbstractsNode> getNodesByLevel(int level);
+
+    /**
+     * 獲取所有層級的節點數
+     * @return 所有層級的節點數
+     */
+    public abstract Map<Integer, List<AbstractsNode>> getAllLevelNodes();
+
+    
 
 
 
@@ -265,5 +337,6 @@ public abstract class AbstractPath {
         public void setCompleted(boolean isCompleted) {
             this.isCompleted = isCompleted;
         }
+
     }
 }

@@ -10,9 +10,14 @@ import com.sk89q.worldedit.extent.clipboard.io.ClipboardReader;
 import com.sk89q.worldedit.function.operation.Operation;
 import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
+import com.sk89q.worldedit.regions.Region;
 import com.sk89q.worldedit.session.ClipboardHolder;
+
+import io.github.cy3902.mcroguelike.MCRogueLike;
+
 import org.bukkit.Location;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -21,26 +26,42 @@ import java.util.function.Consumer;
 
 public class Schem {
     private final String name;
+    private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
     private final File file;
     private Clipboard clipboard;
     private Consumer<Boolean> pasteCallback;
+    private World world;
+    private Location centerPoint;
 
-    public Schem(String name, File file, Location playerLocation) {
+    public Schem(String name, File file, World world) {
         this.name = name;
         this.file = file;
-        loadSchematic();
+        this.world = world;
+        loadSchematic(world);
     }
 
     public void setPasteCallback(Consumer<Boolean> callback) {
         this.pasteCallback = callback;
     }
 
-    private void loadSchematic() {
+    private void loadSchematic(World world) {
         try {
             ClipboardFormat format = ClipboardFormats.findByFile(file);
             if (format != null) {
                 try (ClipboardReader reader = format.getReader(new FileInputStream(file))) {
                     clipboard = reader.read();
+                }
+            }
+            String location = mcroguelike.getSql().select("SELECT center_x, center_y, center_z FROM mcroguelike_schem WHERE name = ?", new String[] { name });
+            if (location != null) {
+                String[] parts = location.split(",");
+                if (parts.length == 3) {
+                    centerPoint = new Location(
+                        world,
+                        Double.parseDouble(parts[0]),
+                        Double.parseDouble(parts[1]),
+                        Double.parseDouble(parts[2])
+                    );
                 }
             }
         } catch (IOException e) {
@@ -56,11 +77,23 @@ public class Schem {
         if (clipboard == null) {
             return null;
         }
-
-        BlockVector3 dimensions = clipboard.getDimensions();
-        BlockVector3 clipboardOffset = clipboard.getRegion().getMinimumPoint().subtract(clipboard.getOrigin());
-        return dimensions.divide(2).add(clipboardOffset);
+    
+        Region region = clipboard.getRegion();
+        BlockVector3 min = region.getMinimumPoint();
+        BlockVector3 max = region.getMaximumPoint();
+    
+        // 計算幾何中心點（注意：取整數）
+        int centerX = (min.getBlockX() + max.getBlockX()) / 2;
+        int centerY = min.getBlockY(); // 根據你的需求，通常以最低Y為基準
+        int centerZ = (min.getBlockZ() + max.getBlockZ()) / 2;
+    
+        return BlockVector3.at(centerX, centerY, centerZ);
     }
+
+
+
+
+    
 
     public void paste(Location location) {
         if (clipboard == null) {
@@ -109,6 +142,7 @@ public class Schem {
         });
     }
 
+    
     public String getName() {
         return name;
     }
@@ -120,5 +154,10 @@ public class Schem {
     public Clipboard getClipboard() {
         return clipboard;
     }
+
+    public Location getCenterPoint() {
+        return centerPoint;
+    }
+    
 }
 

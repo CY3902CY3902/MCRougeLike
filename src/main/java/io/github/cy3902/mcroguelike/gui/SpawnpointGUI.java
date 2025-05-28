@@ -1,6 +1,8 @@
 package io.github.cy3902.mcroguelike.gui;
 
 import io.github.cy3902.mcroguelike.MCRogueLike;
+import io.github.cy3902.mcroguelike.abstracts.AbstractRoom.SpawnPoint;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -12,26 +14,22 @@ import io.github.cy3902.mcroguelike.config.Lang;
 import io.github.cy3902.mcroguelike.config.RoomConfig;
 import io.github.cy3902.mcroguelike.files.RoomFile;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.UUID;
 
 public class SpawnpointGUI {
     private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
-    private final File roomDir;
     private static final int ITEMS_PER_PAGE = 45; // 每頁顯示的物品數量
-    private final Map<UUID, Integer> playerPages; // 玩家UUID -> 當前頁碼
     private final Lang lang;
     private final RoomFile roomFile;
+    private int totalPages;
 
     public SpawnpointGUI() {
-        this.roomDir = new File(mcroguelike.getDataFolder() + "/Room");
-        this.playerPages = new HashMap<>();
         this.lang = mcroguelike.getLang();
         this.roomFile = mcroguelike.getRoomFile();
+        this.totalPages = 0;
     }
 
     /**
@@ -39,25 +37,28 @@ public class SpawnpointGUI {
      * @param player 玩家
      * @param roomId 房間ID
      */
-    public void openSpawnpointGUI(Player player, String roomId) {
+    public void openSpawnpointGUI(Player player, String roomId, int page) {
         RoomConfig config = roomFile.getConfig(roomId);
+        totalPages = (int) Math.ceil((double) roomFile.getConfig(roomId).getSpawnpoints().size() / ITEMS_PER_PAGE);
         if (config == null) {
             player.sendMessage(lang.getMessage("room.gui.room_not_found"));
             return;
         }
 
-        List<Map<String, String>> spawnPoints = config.getSpawnpoints();
+        List<SpawnPoint> spawnPoints = config.getSpawnpoints();
         if (spawnPoints == null) {
             spawnPoints = new ArrayList<>();
         }
 
         Inventory gui = Bukkit.createInventory(null, 54, lang.getMessage("room.gui.title") + " - " + lang.getMessage("room.gui.mob_spawn"));
 
+        int itemIndex = page * ITEMS_PER_PAGE;
+
         // 添加生成點列表
-        for (int i = 0; i < spawnPoints.size() && i < ITEMS_PER_PAGE; i++) {
-            Map<String, String> spawnPoint = spawnPoints.get(i);
+        for (int i = itemIndex; i < spawnPoints.size() && i < itemIndex + ITEMS_PER_PAGE; i++) {
+            SpawnPoint spawnPoint = spawnPoints.get(i);
             ItemStack spawnItem = createSpawnpointItem(spawnPoint);
-            gui.setItem(i, spawnItem);
+            gui.setItem(i - itemIndex, spawnItem);
         }
 
         // 添加創建新生成點按鈕
@@ -67,12 +68,39 @@ public class SpawnpointGUI {
         createButton.setItemMeta(createMeta);
         gui.setItem(47, createButton);
 
+        // 添加上一頁按鈕
+        if (page > 0) {
+            ItemStack prevPage = new ItemStack(Material.ARROW);
+            ItemMeta prevMeta = prevPage.getItemMeta();
+            prevMeta.setDisplayName(lang.getMessage("room.gui.prev_page") + " " + (totalPages));
+            prevPage.setItemMeta(prevMeta);
+            gui.setItem(45, prevPage);
+        }
+
+        // 添加下一頁按鈕
+        if (page < totalPages - 1) {
+            ItemStack nextPage = new ItemStack(Material.ARROW);
+            ItemMeta nextMeta = nextPage.getItemMeta();
+            nextMeta.setDisplayName(lang.getMessage("room.gui.next_page") + " " + (totalPages));
+            nextPage.setItemMeta(nextMeta);
+            gui.setItem(53, nextPage);
+        }
+
+        // 添加頁碼顯示
+        ItemStack pageItem = new ItemStack(Material.PAPER);
+        ItemMeta pageMeta = pageItem.getItemMeta();
+        pageMeta.setDisplayName(lang.getMessage("room.gui.page_info") + " " + (totalPages));
+        pageItem.setItemMeta(pageMeta);
+        gui.setItem(49, pageItem);
+        
+
+
         // 添加返回按鈕
         ItemStack backButton = new ItemStack(Material.BARRIER);
         ItemMeta backMeta = backButton.getItemMeta();
         backMeta.setDisplayName(lang.getMessage("room.gui.back"));
         backButton.setItemMeta(backMeta);
-        gui.setItem(49, backButton);
+        gui.setItem(51, backButton);
 
         player.openInventory(gui);
     }
@@ -82,12 +110,12 @@ public class SpawnpointGUI {
      * @param spawnPoint 生成點配置
      * @return ItemStack
      */
-    private ItemStack createSpawnpointItem(Map<String, String> spawnPoint) {
+    private ItemStack createSpawnpointItem(SpawnPoint spawnPoint) {
         ItemStack item = new ItemStack(Material.SPAWNER);
         ItemMeta meta = item.getItemMeta();
         
-        String name = spawnPoint.get("name");
-        String location = spawnPoint.get("location");
+        String name = spawnPoint.getSpawnpoint().getName();
+        String location = spawnPoint.getLocation();
         
         meta.setDisplayName(ChatColor.GOLD + name);
         
@@ -109,7 +137,7 @@ public class SpawnpointGUI {
      * @param location 生成點位置
      */
     public void createSpawnpoint(Player player, String name, String location) {
-        String roomId = SpawnpointGUIHandler.getInstance().getEditingRoomId(player);
+        String roomId = SpawnpointGUIHandler.getInstance().getEditingPlayer(player.getUniqueId());
         if (roomId == null) {
             player.sendMessage(lang.getMessage("room.gui.room_not_found"));
             return;
@@ -121,14 +149,12 @@ public class SpawnpointGUI {
             return;
         }
 
-        List<Map<String, String>> spawnPoints = config.getSpawnpoints();
+        List<SpawnPoint> spawnPoints = config.getSpawnpoints();
         if (spawnPoints == null) {
             spawnPoints = new ArrayList<>();
         }
 
-        Map<String, String> newSpawnPoint = new HashMap<>();
-        newSpawnPoint.put("name", name);
-        newSpawnPoint.put("location", location);
+        SpawnPoint newSpawnPoint = new SpawnPoint(mcroguelike.getSpawnpointFile().getSpawnpoint(name), location);
         spawnPoints.add(newSpawnPoint);
 
         config.setSpawnpoints(spawnPoints);
@@ -136,68 +162,4 @@ public class SpawnpointGUI {
         player.sendMessage(lang.getMessage("room.gui.changes_saved"));
     }
 
-    /**
-     * 編輯生成點
-     * @param player 玩家
-     * @param index 生成點索引
-     * @param name 新名稱
-     * @param location 新位置
-     */
-    public void editSpawnpoint(Player player, int index, String name, String location) {
-        String roomId = SpawnpointGUIHandler.getInstance().getEditingRoomId(player);
-        if (roomId == null) {
-            player.sendMessage(lang.getMessage("room.gui.room_not_found"));
-            return;
-        }
-
-        RoomConfig config = roomFile.getConfig(roomId);
-        if (config == null) {
-            player.sendMessage(lang.getMessage("room.gui.room_not_found"));
-            return;
-        }
-
-        List<Map<String, String>> spawnPoints = config.getSpawnpoints();
-        if (spawnPoints == null || index < 0 || index >= spawnPoints.size()) {
-            player.sendMessage(lang.getMessage("room.gui.invalid_setting"));
-            return;
-        }
-
-        Map<String, String> spawnPoint = spawnPoints.get(index);
-        spawnPoint.put("name", name);
-        spawnPoint.put("location", location);
-
-        config.setSpawnpoints(spawnPoints);
-        roomFile.saveRoom(roomId, config);
-        player.sendMessage(lang.getMessage("room.gui.changes_saved"));
-    }
-
-    /**
-     * 刪除生成點
-     * @param player 玩家
-     * @param index 生成點索引
-     */
-    public void deleteSpawnpoint(Player player, int index) {
-        String roomId = SpawnpointGUIHandler.getInstance().getEditingRoomId(player);
-        if (roomId == null) {
-            player.sendMessage(lang.getMessage("room.gui.room_not_found"));
-            return;
-        }
-
-        RoomConfig config = roomFile.getConfig(roomId);
-        if (config == null) {
-            player.sendMessage(lang.getMessage("room.gui.room_not_found"));
-            return;
-        }
-
-        List<Map<String, String>> spawnPoints = config.getSpawnpoints();
-        if (spawnPoints == null || index < 0 || index >= spawnPoints.size()) {
-            player.sendMessage(lang.getMessage("room.gui.invalid_setting"));
-            return;
-        }
-
-        spawnPoints.remove(index);
-        config.setSpawnpoints(spawnPoints);
-        roomFile.saveRoom(roomId, config);
-        player.sendMessage(lang.getMessage("room.gui.changes_saved"));
-    }
 } 

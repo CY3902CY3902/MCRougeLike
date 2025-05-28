@@ -35,8 +35,10 @@ public class Commands implements CommandExecutor, TabCompleter {
     public static void register() {
         commands.put("reload", new ReloadCommand());
         commands.put("gui", new TestCommand());
-        commands.put("paste", new SchemCommand());
+        commands.put("save", new SchemCommand());
+        commands.put("remove", new SchemRemoveCommand());
         commands.put("room", new RoomCommand());
+        commands.put("party", new PartyCommand());
 
         // 註冊GUI處理器    
         RoomGUIHandler.getInstance();

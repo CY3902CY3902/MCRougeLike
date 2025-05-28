@@ -5,6 +5,8 @@ import java.util.Map;
 
 import org.bukkit.Location;
 
+import io.github.cy3902.mcroguelike.abstracts.AbstractRoom.SpawnPoint;
+
 /**
  * 房間配置類
  * 用於存儲房間的配置信息
@@ -21,7 +23,7 @@ public class RoomConfig {
     private String playerSpawn;
     private int minFloor;
     private int maxFloor;
-    private List<Map<String, String>> spawnpoints;
+    private List<SpawnPoint> spawnpoints;
 
     /**
      * 默認構造函數
@@ -47,7 +49,7 @@ public class RoomConfig {
     public RoomConfig(String roomId, String name, String type, String structure, String description, 
                      int timeLimit, int baseScore, double earlyCompletionMultiplier, 
                      String playerSpawn, int minFloor, int maxFloor, 
-                     List<Map<String, String>> spawnpoints) {
+                     List<SpawnPoint> spawnpoints) {
         this.roomId = roomId;
         this.name = name;
         this.type = type;
@@ -107,7 +109,7 @@ public class RoomConfig {
         return maxFloor;
     }
 
-    public List<Map<String, String>> getSpawnpoints() {
+    public List<SpawnPoint> getSpawnpoints() {
         return spawnpoints;
     }
 
@@ -156,7 +158,7 @@ public class RoomConfig {
         this.maxFloor = maxFloor;
     }
 
-    public void setSpawnpoints(List<Map<String, String>> spawnpoints) {
+    public void setSpawnpoints(List<SpawnPoint> spawnpoints) {
         this.spawnpoints = spawnpoints;
     }
 } 

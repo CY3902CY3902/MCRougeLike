@@ -4,16 +4,21 @@ import io.github.cy3902.mcroguelike.MCRogueLike;
 import io.github.cy3902.mcroguelike.abstracts.AbstractRoom;
 import io.github.cy3902.mcroguelike.bossbar.bossbar;
 import io.github.cy3902.mcroguelike.config.Lang;
+import io.github.cy3902.mcroguelike.manager.game.GameStartManager;
+import io.github.cy3902.mcroguelike.party.Party;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
 
 /**
  * 普通房間管理器
@@ -21,16 +26,16 @@ import java.util.List;
  */
 public class SurvivalRoomManager implements RoomManager {
     private final AbstractRoom room;
-    private final MCRogueLike mcroguelike = MCRogueLike.getInstance();
+    private final MCRogueLike mcRogueLike = MCRogueLike.getInstance();
+    private final Party party;
     private final List<LivingEntity> activeEnemies;
     private BukkitTask spawnTask;
     private BukkitTask timerTask;
     private SpawnPointManager spawnPointManager;
     private bossbar bossbar;
     private Location baseLocation;
-    private List<Player> players;
     private List<Player> deadPlayers;
-    private final Lang lang = mcroguelike.getLang();
+    private final Lang lang = mcRogueLike.getLang();
     private Runnable onEndCallback;
 
     // 房間狀態
@@ -38,19 +43,19 @@ public class SurvivalRoomManager implements RoomManager {
     private boolean isPaused;
     private int remainingTime;
 
-    public SurvivalRoomManager(AbstractRoom room, Location baseLocation) {
+    public SurvivalRoomManager(AbstractRoom room, Location baseLocation, Party party) {
         String survivalTime = lang.getMessage("bossbar.survival_time").replace("%time%", String.valueOf(room.getTimeLimit()))
         .replace("%max_time%", String.valueOf(room.getTimeLimit()));
         this.room = room;
         this.activeEnemies = new ArrayList<>();
         this.isRunning = false;
-        this.isPaused = false;
+        this.isPaused = true;
         this.remainingTime = room.getTimeLimit();
-        this.players = new ArrayList<>();
-        this.deadPlayers = new ArrayList<>();
         this.baseLocation = baseLocation;
         this.spawnPointManager = new SpawnPointManager(room, room.getSpawnPoints());
         this.bossbar = new bossbar(survivalTime, remainingTime,remainingTime);
+        this.party = party;
+        this.deadPlayers = new ArrayList<>();
     }
 
     /**
@@ -59,18 +64,17 @@ public class SurvivalRoomManager implements RoomManager {
      * @param world 世界
      */
     @Override
-    public void start(List<Player> players, World world) {
+    public void start(Party party, World world) {
         if (isRunning) {
             return;
         }
         bossbar.createBossBar();
-        this.players = players;
         isRunning = true;
         isPaused = false;
         remainingTime = room.getTimeLimit();
         
         // 綁定玩家bossbar
-        for (Player player : players) {
+        for (Player player : party.getMembers()) {
             bindPlayer(player);
         }
 
@@ -175,11 +179,9 @@ public class SurvivalRoomManager implements RoomManager {
         }
         activeEnemies.clear();
 
-        // 重置房間
-        players.clear();
 
         // 解綁玩家bossbar
-        for (Player player : players) {
+        for (Player player : party.getMembers()) {
             unbindPlayer(player);
         }
 
@@ -195,14 +197,14 @@ public class SurvivalRoomManager implements RoomManager {
     @Override
     public Integer calculate() {
         // 結算房間
-        if (players.size() == 0) {
+        if (party.getMembers().size() == 0) {
             return 0;
         }
-        if (deadPlayers.size() == players.size()) {
+        if (deadPlayers.size() == party.getMembers().size()) {
             // 所有玩家都死了
             return 0;
         }
-        for (Player player : players) {
+        for (Player player : party.getMembers()) {
             if (deadPlayers.contains(player)) {
                 continue;
             }
@@ -282,18 +284,58 @@ public class SurvivalRoomManager implements RoomManager {
     }
 
     /**
+     * 設置生成點
+     * @param spawnLocation 生成點
+     */
+    @Override
+    public void setBaseLocation(Location baseLocation) {
+        this.baseLocation = baseLocation;
+    }
+    
+    /**
      * 開始生成怪物
      * @param world 世界
      */
-    private void startSpawning(Location baseLocation) {
-        spawnPointManager.spawn(baseLocation);
+    private void startSpawning(Location spawnLocation) {
+        spawnPointManager.spawn(spawnLocation);
     }
+
+    /**
+     * 設置開始前倒數
+     */
+    @Override
+    public void StartCountdown() {
+        AtomicInteger countdown = new AtomicInteger(10);
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (isPaused || !isRunning) {
+                    this.cancel();  // 中止倒數
+                    return;
+                }
+        
+                int timeLeft = countdown.getAndDecrement();
+        
+                if (timeLeft <= 0) {
+                    this.cancel();  // 停止定時任務
+                    return;
+                }
+        
+                for (Player player : party.getMembers()) {
+                    player.sendTitle(
+                        lang.getMessage("countdown.start"),
+                        "", 20, 20, 20
+                    );
+                }
+            }
+        }.runTaskTimer(mcRogueLike, 0L, 20L);
+    }   
 
     /**
      * 開始計時
      */
     private void startTimer() {
-        timerTask = Bukkit.getScheduler().runTaskTimer(room.getPlugin(), () -> {
+        timerTask = Bukkit.getScheduler().runTaskTimer(mcRogueLike, () -> {
             if (!isRunning || isPaused) {
                 return;
             }
@@ -360,4 +402,6 @@ public class SurvivalRoomManager implements RoomManager {
     public void setOnEndCallback(Runnable callback) {
         this.onEndCallback = callback;
     }
+
+
 } 

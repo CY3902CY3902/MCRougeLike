@@ -10,7 +10,7 @@ floor:
   min: 1
   max: 10
 spawn_points:
-  - name: "horde_spawn"
-    location: "0,64,0"  # 相對位置
-  - name: "normal_spawn"
-    location: "20,64,0"  # 相對位置 
+  horde_spawn:
+    location: "0,64,0"
+  elite_spawn:
+    location: "15,64,0" 

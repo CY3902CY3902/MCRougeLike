@@ -24,7 +24,7 @@ public class AnnihilationRoom extends AbstractRoom {
             String roomId,
             String roomName,
             String structureName,
-            List<AbstractSpawnpoint> spawnPoints,
+            List<SpawnPoint> spawnPoints,
             int minFloor,
             int maxFloor,
             int timeLimit,
@@ -32,7 +32,8 @@ public class AnnihilationRoom extends AbstractRoom {
             double earlyCompletionMultiplier,
             String playerSpawnPoint
     ) {
-        super(roomId, roomName, structureName, RoomType.Annihilation, new HashMap<>(), minFloor, maxFloor, timeLimit, baseScore, playerSpawnPoint);
+        
+        super(roomId, roomName, structureName, RoomType.Annihilation, spawnPoints, minFloor, maxFloor, timeLimit, baseScore, playerSpawnPoint);
         this.earlyCompletionMultiplier = earlyCompletionMultiplier;
         this.currentKills = 0;
         this.baseScore = baseScore;
@@ -40,8 +41,8 @@ public class AnnihilationRoom extends AbstractRoom {
         this.isPaused = false;
         
         // Convert List to HashMap
-        for (AbstractSpawnpoint spawnPoint : spawnPoints) {
-            getSpawnPoints().put(spawnPoint, null); // Location will be set later
+        for (SpawnPoint spawnPoint : spawnPoints) {
+            getSpawnPoints().add(spawnPoint); // Location will be set later
         }
     }
 

@@ -63,8 +63,8 @@ public class SQLite extends AbstractSQL {
         }
 
         // 創建玩家路徑表格
-        String createPlayerPathTableSQL = "CREATE TABLE IF NOT EXISTS mcroguelike_player_path ("
-                + "player VARCHAR(255) NOT NULL PRIMARY KEY, "
+        String createPlayerPathTableSQL = "CREATE TABLE IF NOT EXISTS mcroguelike_party_path ("
+                + "party_uuid VARCHAR(255) NOT NULL PRIMARY KEY, "
                 + "path VARCHAR(255) NOT NULL"
                 + ");";
 
@@ -73,6 +73,35 @@ public class SQLite extends AbstractSQL {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        // 創建結構位置表格
+        String createSchemLocationTableSQL = "CREATE TABLE IF NOT EXISTS mcroguelike_schem ("
+                + "name VARCHAR(255) NOT NULL PRIMARY KEY, "
+                + "center_x DOUBLE NOT NULL, "
+                + "center_y DOUBLE NOT NULL, "
+                + "center_z DOUBLE NOT NULL "
+                + ");";
+
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(createSchemLocationTableSQL);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        // 創建隊伍成員表格
+        String createPartyMemberTableSQL = "CREATE TABLE IF NOT EXISTS mcroguelike_party_member ("
+                + "party_uuid VARCHAR(255) NOT NULL, "
+                + "member_uuid VARCHAR(255) NOT NULL, "
+                + "is_leader Boolean NOT NULL DEFAULT false, "
+                + "PRIMARY KEY (party_uuid, member_uuid)"
+                + ");";
+
+        try (Statement stmt = connection.createStatement()) {
+            stmt.execute(createPartyMemberTableSQL);
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+                
     }
 
     /**
@@ -129,7 +158,15 @@ public class SQLite extends AbstractSQL {
             }
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return rs.getString(1);
+                StringBuilder result = new StringBuilder();
+                int columnCount = rs.getMetaData().getColumnCount();
+                for (int i = 1; i <= columnCount; i++) {
+                    if (i > 1) {
+                        result.append(",");
+                    }
+                    result.append(rs.getString(i));
+                }
+                return result.toString();
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -139,6 +176,12 @@ public class SQLite extends AbstractSQL {
 
     @Override
     public void insert(String sql, String[] params) {
+        // 將 MySQL 的 INSERT ... ON DUPLICATE KEY UPDATE 轉換為 SQLite 的 INSERT OR REPLACE
+        if (sql.contains("ON DUPLICATE KEY UPDATE")) {
+            sql = sql.substring(0, sql.indexOf("ON DUPLICATE KEY UPDATE")).trim();
+            sql = sql.replace("INSERT INTO", "INSERT OR REPLACE INTO");
+        }
+        
         try (PreparedStatement stmt = connection.prepareStatement(sql)) {
             for (int i = 0; i < params.length; i++) {
                 stmt.setString(i + 1, params[i]);

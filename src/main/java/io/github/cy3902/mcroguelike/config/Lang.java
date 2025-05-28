@@ -110,6 +110,7 @@ public class Lang extends FileProvider<Map<String, String>> {
         messages.put("world_not_found_message", color(yml.getString("world_not_found_message", "&c世界不存在，值:")));
         messages.put("read_lang_error", color(yml.getString("read_lang_error", "&c文件配置錯誤，默認繁體中文")));
         messages.put("error", color(yml.getString("error", "&c發生錯誤")));
+        messages.put("player_only", color(yml.getString("player_only", "&c此指令只能由玩家執行")));
 
         // 讀取關卡類型的語言設定
         messages.put("level_type.survival", color(yml.getString("level_type.survival", "生存")));
@@ -122,11 +123,15 @@ public class Lang extends FileProvider<Map<String, String>> {
         messages.put("gui.path_name", color(yml.getString("gui.path_name", "&a路徑名稱")));
         messages.put("gui.path_difficulty", color(yml.getString("gui.path_difficulty", "&e難度")));
         messages.put("gui.path_description", color(yml.getString("gui.path_description", "&f描述")));
-        messages.put("player_only", color(yml.getString("player_only", "&c此指令只能由玩家使用")));
         
         // 結構相關文字
         messages.put("schem_file_not_found", color(yml.getString("schem_file_not_found", "&c找不到結構文件: %filename%")));
         messages.put("schem_pasted", color(yml.getString("schem_pasted", "&a已貼上結構: %filename%")));
+        messages.put("schem_no_selection", color(yml.getString("schem_no_selection", "&c請先選擇一個區域")));
+        messages.put("schem_saved", color(yml.getString("schem_saved", "&a結構已儲存: %filename%")));
+        messages.put("schem_save_failed", color(yml.getString("schem_save_failed", "&c儲存結構失敗")));
+        messages.put("schem_removed", color(yml.getString("schem_removed", "&a結構已刪除: %filename%")));
+        messages.put("schem_remove_failed", color(yml.getString("schem_remove_failed", "&c刪除結構失敗")));
         
         // 房間GUI相關文字
         messages.put("room.gui.title", color(yml.getString("room.gui.title", "&b&lMCRogueLike &f房間管理系統")));
@@ -135,13 +140,13 @@ public class Lang extends FileProvider<Map<String, String>> {
         messages.put("room.gui.prev_page", color(yml.getString("room.gui.prev_page", "&a上一頁")));
         messages.put("room.gui.next_page", color(yml.getString("room.gui.next_page", "&a下一頁")));
         messages.put("room.gui.page_info", color(yml.getString("room.gui.page_info", "&a頁面 ")));
-        messages.put("room.gui.create_new", color(yml.getString("room.gui.create_new", "&a創建新房間")));
         messages.put("room.gui.room_name", color(yml.getString("room.gui.room_name", "&a房間名稱")));
         messages.put("room.gui.room_type", color(yml.getString("room.gui.room_type", "&a房間類型")));
         messages.put("room.gui.structure", color(yml.getString("room.gui.structure", "&a結構名稱")));
         messages.put("room.gui.time_limit", color(yml.getString("room.gui.time_limit", "&a時限")));
         messages.put("room.gui.base_score", color(yml.getString("room.gui.base_score", "&a基礎分數")));
         messages.put("room.gui.player_spawn", color(yml.getString("room.gui.player_spawn", "&a玩家出生點")));
+        messages.put("room.gui.spawn_name", color(yml.getString("room.gui.spawn_name", "&a生成點名稱")));
         messages.put("room.gui.min_floor", color(yml.getString("room.gui.min_floor", "&a最小樓層")));
         messages.put("room.gui.max_floor", color(yml.getString("room.gui.max_floor", "&a最大樓層")));
         messages.put("room.gui.save", color(yml.getString("room.gui.save", "&a保存更改")));
@@ -165,6 +170,7 @@ public class Lang extends FileProvider<Map<String, String>> {
         messages.put("room.gui.no", color(yml.getString("room.gui.no", "否")));
         messages.put("room.gui.room_deleted", color(yml.getString("room.gui.room_deleted", "&c房間已刪除！")));
         messages.put("room.gui.changes_saved", color(yml.getString("room.gui.changes_saved", "&a更改已保存！")));
+        messages.put("room.gui.settings_updated", color(yml.getString("room.gui.settings_updated", "&a已更新設置！")));
         messages.put("room.gui.room_type_updated", color(yml.getString("room.gui.room_type_updated", "&a房間類型已更新為: ")));
         messages.put("room.gui.move_to_spawn", color(yml.getString("room.gui.move_to_spawn", "&e請移動到你想要設置的出生點位置，然後輸入 'confirm' 確認。")));
         messages.put("room.gui.cancel_spawn", color(yml.getString("room.gui.cancel_spawn", "&e輸入 'cancel' 取消設置。")));
@@ -172,12 +178,10 @@ public class Lang extends FileProvider<Map<String, String>> {
         messages.put("room.gui.spawn_cancelled", color(yml.getString("room.gui.spawn_cancelled", "&c已取消設置出生點")));
         messages.put("room.gui.invalid_input", color(yml.getString("room.gui.invalid_input", "&c無效的輸入。請輸入 'confirm' 確認或 'cancel' 取消。")));
         messages.put("room.gui.room_exists", color(yml.getString("room.gui.room_exists", "&c該房間ID已存在！")));
-        messages.put("room.gui.room_created", color(yml.getString("room.gui.room_created", "&a已創建新房間！")));
-        messages.put("room.gui.settings_updated", color(yml.getString("room.gui.settings_updated", "&a已更新設置！")));
         messages.put("room.gui.invalid_number", color(yml.getString("room.gui.invalid_number", "&c請輸入有效的數值！")));
         messages.put("room.gui.enter_value", color(yml.getString("room.gui.enter_value", "&e請輸入新的")));
         messages.put("room.gui.config_not_found", color(yml.getString("room.gui.config_not_found", "&c無法找到房間配置！")));
-        messages.put("room.gui.confirm_delete", color(yml.getString("room.gui.confirm_delete", "&c確認刪除房間？輸入 'yes' 確認，其他任意輸入取消。")));
+        messages.put("room.gui.confirm_delete", color(yml.getString("room.gui.confirm_delete", "&c確認刪除房間？輸入 'confirm' 確認，其他任意輸入取消。")));
         messages.put("room.gui.delete_cancelled", color(yml.getString("room.gui.delete_cancelled", "&a已取消刪除房間。")));
         messages.put("room.gui.invalid_setting", color(yml.getString("room.gui.invalid_setting", "&c無效的設置項！")));
         messages.put("room.gui.confirm", color(yml.getString("room.gui.confirm", "confirm")));
@@ -186,7 +190,8 @@ public class Lang extends FileProvider<Map<String, String>> {
         messages.put("room.gui.create_new_spawnpoint", color(yml.getString("room.gui.create_new_spawnpoint", "&a創建新生成點")));
         messages.put("room.gui.delete_spawnpoint", color(yml.getString("room.gui.delete_spawnpoint", "&c刪除生成點")));
         messages.put("room.gui.mob_spawn_enter", color(yml.getString("room.gui.mob_spawn_enter", "&e進入怪物生成點編輯模式")));
-        messages.put("room.gui.mob_spawn", color(yml.getString("room.gui.mob_spawn_enter", "&e怪物生成點")));
+        messages.put("room.gui.mob_spawn", color(yml.getString("room.gui.mob_spawn", "&e怪物生成點")));
+        messages.put("room.gui.location", color(yml.getString("room.gui.location", "&7位置: ")));
 
         // 房間類型描述
         messages.put("room.type.survival_desc", color(yml.getString("room.type.survival_desc", "玩家需要在指定時間內存活下來")));
@@ -218,6 +223,13 @@ public class Lang extends FileProvider<Map<String, String>> {
         messages.put("path.gui.invalid_map_room", color(yml.getString("path.gui.invalid_map_room", "&c無效的地圖或房間")));
         messages.put("path.gui.map_not_found", color(yml.getString("path.gui.map_not_found", "&c找不到地圖")));
         messages.put("path.gui.room_not_found", color(yml.getString("path.gui.room_not_found", "&c找不到房間")));
+        messages.put("path.gui.no_party", color(yml.getString("path.gui.no_party", "&c你必須在隊伍中才能選擇路徑")));
+        messages.put("path.gui.game_failed", color(yml.getString("path.gui.game_failed", "&c挑戰失敗!")));
+        messages.put("path.gui.not_leader", color(yml.getString("path.gui.not_leader", "&c只有隊長才能選擇路徑")));
+        messages.put("path.gui.no_path", color(yml.getString("path.gui.no_path", "&cPath not found")));
+        messages.put("path.gui.not_original_member", color(yml.getString("path.gui.not_original_member", "&cYou must be an original member of the party to select a path")));
+        messages.put("path.gui.delete_path", color(yml.getString("path.gui.delete_path", "&cDelete Path")));
+        messages.put("path.gui.path_deleted", color(yml.getString("path.gui.path_deleted", "&aPath has been deleted")));
 
         // Room log messages
         messages.put("room.log.cannot_get_room_id", color(yml.getString("room.log.cannot_get_room_id", "無法從物品中獲取房間ID")));
@@ -232,6 +244,28 @@ public class Lang extends FileProvider<Map<String, String>> {
    
         // bossbar相關文字
         messages.put("bossbar.survival_time", color(yml.getString("bossbar.survival_time", "&a生存時間: %time%/%max_time%")));
+
+        // Countdown related text
+        messages.put("countdown.start", color(yml.getString("countdown.start", "&a遊戲將在 %time% 秒後開始")));
+
+        // Party related messages
+        messages.put("party.help", color(yml.getString("party.help", "&f------ &b&lParty Commands &f------\n&aCommands:\n&8 - create &7Create a new party\n&8 - join &7Join a party\n&8 - leave &7Leave current party\n&8 - invite <player> &7Invite a player to your party\n&8 - kick <player> &7Kick a player from your party\n&8 - transfer <player> &7Transfer party leadership\n&8 - info &7Show party information")));
+        messages.put("party.need_party_name", color(yml.getString("party.need_party_name", "&cPlease specify a party name")));
+        messages.put("party.need_player_name", color(yml.getString("party.need_player_name", "&cPlease specify a player name")));
+        messages.put("party.party_not_found", color(yml.getString("party.party_not_found", "&cParty not found")));
+        messages.put("party.invite_self", color(yml.getString("party.invite_self", "&cYou cannot invite yourself")));
+        messages.put("party.invite_already_in_party", color(yml.getString("party.invite_already_in_party", "&cPlayer is already in a party")));
+        messages.put("party.invite_sent", color(yml.getString("party.invite_sent", "&aInvitation sent")));
+        messages.put("party.invite_received", color(yml.getString("party.invite_received", "&aYou have been invited to join %player%'s party by %leader%")));
+        messages.put("party.kick_leader", color(yml.getString("party.kick_leader", "&cYou cannot kick the party leader")));
+        messages.put("party.transfer_leader_self", color(yml.getString("party.transfer_leader_self", "&cYou cannot transfer leadership to yourself")));
+        messages.put("party.info", color(yml.getString("party.info", "&aParty Information:\n&7Leader: %leader%\n&7Members: %members%")));
+        messages.put("party.party_leave", color(yml.getString("party.party_leave", "&aYou have left the party")));
+        messages.put("party.party_created", color(yml.getString("party.party_created", "&a已創建隊伍")));
+        messages.put("party.party_already_created", color(yml.getString("party.party_already_created", "&c你已經在一個隊伍中了")));
+        messages.put("party.invite_offline", color(yml.getString("party.invite_offline", "&c該玩家不在線")));
+        messages.put("party.kick_not_in_party", color(yml.getString("party.kick_not_in_party", "&c該玩家不在你的隊伍中")));
+        messages.put("party.transfer_leader_not_in_party", color(yml.getString("party.transfer_leader_not_in_party", "&c該玩家不在你的隊伍中")));
     }
 
     /**

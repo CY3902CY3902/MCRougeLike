@@ -53,6 +53,10 @@ public abstract class AbstractSpawnpoint {
     }
 
     // Getters
+    public String getName() {
+        return name;
+    }
+
     public List<AbstractMob> getMobs() {
         return mobs;
     }
@@ -94,5 +98,7 @@ public abstract class AbstractSpawnpoint {
     public void setSpawnCount(int spawnCount) {
         this.spawnCount = spawnCount;
     }
+
+    
 }
 

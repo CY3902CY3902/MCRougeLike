@@ -9,6 +9,7 @@ help_player:
   - '&8 - gui &7打開GUI介面'
   - '&8 - paste <檔案名> &7貼上結構'
   - '&8 - room &7管理房間'
+  - '&8 - party &7管理隊伍'
 no_permission: '&c你沒有權限使用此指定'
 unknown_command: '&c指令輸入錯誤，請使用/mcrougelike查詢'
 reload: '&f正在重新載入此插件的所有設定檔'
@@ -16,21 +17,29 @@ reload_error: '&c載入此插件的所有設定檔時出現錯誤'
 reload_success: '&a插件重新載入成功!'
 read_yml_error: '&cYML 文件配置錯誤! 檔案路徑: '
 world_not_found_message: '&c世界不存在，值:'
-read_lang_error: "&c文件配置錯誤，默認繁體中文"
+read_lang_error: '&c文件配置錯誤，默認繁體中文'
 error: '&c發生錯誤'
+player_only: '&c此指令只能由玩家執行'
+
 level_type:
   survival: '生存'
   annihilation: '剿滅'
   defense: '防守'
   sniper_mission: '狙殺'
+
 gui:
   title: '&b&lMCRogueLike &f路徑選擇'
   path_name: '&a路徑名稱'
   path_difficulty: '&e難度'
   path_description: '&f描述'
-player_only: '&c此指令只能由玩家執行'
+
 schem_file_not_found: '&c找不到結構文件: %filename%'
 schem_pasted: '&a已貼上結構: %filename%'
+schem_no_selection: "&c請先選擇一個區域"
+schem_saved: "&a結構已儲存: %filename%"
+schem_save_failed: "&c儲存結構失敗"
+schem_removed: "&a結構已刪除: %filename%"
+schem_remove_failed: "&c刪除結構失敗"
 
 # 房間GUI相關文字
 room:
@@ -50,6 +59,7 @@ room:
     time_limit: '&a時限'
     base_score: '&a基礎分數'
     player_spawn: '&a玩家出生點'
+    spawn_name: '&a生成點名稱'
     min_floor: '&a最小樓層'
     max_floor: '&a最大樓層'
     save: '&a保存更改'
@@ -74,26 +84,26 @@ room:
     room_deleted: '&c房間已刪除！'
     changes_saved: '&a更改已保存！'
     room_type_updated: '&a房間類型已更新為: '
-    move_to_spawn: "&e請移動到你想要設置的出生點位置，然後輸入 'confirm' 確認。"
+    move_to_spawn: "&e請移動到你想要設置的出生點位置，然後輸入 'confirm' 確認或 'cancel' 取消。"
     cancel_spawn: "&e輸入 'cancel' 取消設置。"
     spawn_set: '&a出生點已設置為: '
     spawn_cancelled: '&c已取消設置出生點'
     invalid_input: "&c無效的輸入。請輸入 'confirm' 確認或 'cancel' 取消。"
     room_exists: '&c該房間ID已存在！'
-    room_created: '&a已創建新房間！'
     settings_updated: '&a已更新設置！'
     invalid_number: '&c請輸入有效的數值！'
     enter_value: '&e請輸入新的'
     config_not_found: '&c無法找到房間配置！'
-    confirm_delete: '&c確認刪除房間？輸入 "yes" 確認，其他任意輸入取消。'
+    confirm_delete: "&c確認刪除房間？輸入 'confirm' 確認，其他任意輸入取消。"
     delete_cancelled: '&a已取消刪除房間。'
     invalid_setting: '&c無效的設置項！'
     confirm: 'confirm'
     cancel: 'cancel'
-    room_not_found: '&c找不到房間！'
+    room_not_found: '&c找不到房間'
     mob_spawn_enter: '&e進入怪物生成點編輯模式'
     mob_spawn: '&e怪物生成點'
     location: '&7位置: '
+    no_party: '&c你必須在隊伍中才能選擇路徑'
   type:
     survival_desc: '玩家需要在指定時間內存活下來'
     annihilation_desc: '玩家需要在時間內消滅指定數量的敵人'
@@ -136,9 +146,40 @@ path:
     invalid_map_room: '&c無效的地圖或房間'
     map_not_found: '&c找不到地圖'
     room_not_found: '&c找不到房間'
+    no_party: '&c你必須在隊伍中才能選擇路徑'
+    game_failed: '&c挑戰失敗!'
+    not_leader: '&c只有隊長才能選擇路徑'
+    no_path: '&c找不到路徑'
+    not_original_member: '&c你必須從一開始就加入隊伍才能選擇路徑'
+    delete_path: '&c刪除路徑'
+    path_deleted: '&a路徑已刪除'
 
 # bossbar相關文字
 bossbar:
   survival_time: '&a生存時間: %time%/%max_time%'
 
+# 倒數計時相關文字
+countdown:
+  start: '&a遊戲將在 %time% 秒後開始'
+
+# Party related messages
+party:
+  help: "&f------ &b&l隊伍指令 &f------\n&a指令:\n&8 - create &7創建新隊伍\n&8 - join &7加入隊伍\n&8 - leave &7離開隊伍\n&8 - invite <玩家> &7邀請玩家加入隊伍\n&8 - kick <玩家> &7踢出隊伍成員\n&8 - transfer <玩家> &7轉移隊長職位\n&8 - info &7顯示隊伍資訊"
+  need_party_name: "&c請指定隊伍名稱"
+  need_player_name: "&c請指定玩家名稱"
+  party_not_found: "&c找不到隊伍"
+  invite_self: "&c不能邀請自己"
+  invite_already_in_party: "&c玩家已在隊伍中"
+  invite_sent: "&a已發送邀請"
+  invite_received: "&a你被 %player% 邀請加入 %leader% 的隊伍"
+  kick_leader: "&c不能踢出隊長"
+  transfer_leader_self: "&c不能將隊長職位轉移給自己"
+  info: "&a隊伍資訊:\n&7隊長: %leader%\n&7成員數: %members%"
+  party_leave: "&a你已離開隊伍"
+  party_created: "&a已創建隊伍"
+  party_already_created: "&c你已經在一個隊伍中了"
+  invite_offline: "&c該玩家不在線"
+  kick_not_in_party: "&c該玩家不在你的隊伍中"
+  transfer_leader_not_in_party: "&c該玩家不在你的隊伍中"
+  
 

@@ -9,6 +9,7 @@ help_player:
   - '&8 - gui &7Open GUI interface'
   - '&8 - paste <filename> &7Paste structure'
   - '&8 - room &7Manage rooms'
+  - '&8 - party &7Manage parties'
 unknown_command: '&cInvalid command, use /mcrougelike for help'
 no_permission: '&cYou don\'t have permission to use this command'
 reload: '&fReloading all plugin configuration files'
@@ -18,15 +19,28 @@ read_yml_error: '&cYML file configuration error! File path: '
 world_not_found_message: '&cWorld not found, value:'
 read_lang_error: '&cFile configuration error, defaulting to English'
 error: '&cAn error occurred'
+player_only: '&cThis command can only be executed by players'
+
 level_type:
   survival: 'Survival'
   annihilation: 'Annihilation'
   defense: 'Defense'
   sniper_mission: 'Sniper Mission'
 
+gui:
+  title: '&b&lMCRogueLike &fPath Selection'
+  path_name: '&aPath Name'
+  path_difficulty: '&eDifficulty'
+  path_description: '&fDescription'
+
 # Structure related text
 schem_file_not_found: '&cStructure file not found: %filename%'
 schem_pasted: '&aStructure pasted: %filename%'
+schem_no_selection: '&cPlease select a region first'
+schem_saved: '&aStructure saved: %filename%'
+schem_save_failed: '&cFailed to save structure'
+schem_removed: '&aStructure removed: %filename%'
+schem_remove_failed: '&cFailed to remove structure'
 
 # Room GUI related text
 room:
@@ -46,6 +60,7 @@ room:
     time_limit: '&aTime Limit'
     base_score: '&aBase Score'
     player_spawn: '&aPlayer Spawn'
+    spawn_name: '&aSpawn Point Name'
     min_floor: '&aMin Floor'
     max_floor: '&aMax Floor'
     save: '&aSave Changes'
@@ -70,23 +85,22 @@ room:
     room_deleted: '&cRoom deleted!'
     changes_saved: '&aChanges saved!'
     room_type_updated: '&aRoom type updated to: '
-    move_to_spawn: '&ePlease move to the spawn location you want to set, then type \'confirm\' to confirm.'
+    move_to_spawn: '&ePlease move to the spawn location you want to set, then type \'confirm\' to confirm or \'cancel\' to cancel.'
     cancel_spawn: '&eType \'cancel\' to cancel setting.'
     spawn_set: '&aSpawn point set to: '
     spawn_cancelled: '&cSpawn point setting cancelled'
     invalid_input: '&cInvalid input. Please type \'confirm\' to confirm or \'cancel\' to cancel.'
     room_exists: '&cRoom ID already exists!'
-    room_created: '&aNew room created!'
     settings_updated: '&aSettings updated!'
     invalid_number: '&cPlease enter a valid number!'
     enter_value: '&ePlease enter new'
     config_not_found: '&cRoom configuration not found!'
-    confirm_delete: '&cConfirm delete room? Type "yes" to confirm, anything else to cancel.'
+    confirm_delete: '&cConfirm delete room? Type "confirm" to confirm, anything else to cancel.'
     delete_cancelled: '&aRoom deletion cancelled.'
     invalid_setting: '&cInvalid setting!'
     confirm: 'confirm'
     cancel: 'cancel'
-    room_not_found: '&cRoom not found!'
+    room_not_found: '&cRoom not found'
     mob_spawn_enter: '&eEntering mob spawn point edit mode'
     mob_spawn: '&eMob Spawn Points'
     location: '&7Location: '
@@ -132,8 +146,39 @@ path:
     invalid_map_room: '&cInvalid map or room'
     map_not_found: '&cMap not found'
     room_not_found: '&cRoom not found'
+    no_party: '&cYou must be in a party to select a path'
+    game_failed: '&cChallenge failed!'
+    not_leader: '&cOnly the party leader can select a path'
+    no_path: '&cPath not found'
+    not_original_member: '&cYou must be an original member of the party to select a path'
+    delete_path: '&cDelete Path'
+    path_deleted: '&aPath has been deleted'
 
-# bossbar相關文字
+# bossbar related text
 bossbar:
   survival_time: '&aSurvival Time: %time%/%max_time%'
+
+# Countdown related text
+countdown:
+  start: '&aGame will start in %time% seconds'
+
+# Party related messages
+party:
+  help: "&f------ &b&lParty Commands &f------\n&aCommands:\n&8 - create &7Create a new party\n&8 - join &7Join a party\n&8 - leave &7Leave current party\n&8 - invite <player> &7Invite a player to your party\n&8 - kick <player> &7Kick a player from your party\n&8 - transfer <player> &7Transfer party leadership\n&8 - info &7Show party information"
+  need_party_name: "&cPlease specify a party name"
+  need_player_name: "&cPlease specify a player name"
+  party_not_found: "&cParty not found"
+  invite_self: "&cYou cannot invite yourself"
+  invite_already_in_party: "&cPlayer is already in a party"
+  invite_sent: "&aInvitation sent"
+  invite_received: "&aYou have been invited to join %player%'s party by %leader%"
+  kick_leader: "&cYou cannot kick the party leader"
+  transfer_leader_self: "&cYou cannot transfer leadership to yourself"
+  info: "&aParty Information:\n&7Leader: %leader%\n&7Members: %members%"
+  party_leave: "&aYou have left the party"
+  party_created: "&aParty created"
+  party_already_created: "&cYou are already in a party"
+  invite_offline: "&cThat player is offline"
+  kick_not_in_party: "&cThat player is not in your party"
+  transfer_leader_not_in_party: "&cThat player is not in your party"
 

@@ -72,7 +72,7 @@ public class RoomGUI {
         if (page > 0) {
             ItemStack prevPage = new ItemStack(Material.ARROW);
             ItemMeta prevMeta = prevPage.getItemMeta();
-            prevMeta.setDisplayName(lang.getMessage("room.gui.prev_page"));
+            prevMeta.setDisplayName(lang.getMessage("room.gui.prev_page") + " " + (page - 1));
             prevPage.setItemMeta(prevMeta);
             gui.setItem(45, prevPage);
         }
@@ -81,7 +81,7 @@ public class RoomGUI {
         if (page < totalPages - 1) {
             ItemStack nextPage = new ItemStack(Material.ARROW);
             ItemMeta nextMeta = nextPage.getItemMeta();
-            nextMeta.setDisplayName(lang.getMessage("room.gui.next_page"));
+            nextMeta.setDisplayName(lang.getMessage("room.gui.next_page") + " " + (page + 1));
             nextPage.setItemMeta(nextMeta);
             gui.setItem(53, nextPage);
         }
@@ -92,13 +92,6 @@ public class RoomGUI {
         pageMeta.setDisplayName(lang.getMessage("room.gui.page_info") + (page + 1) + "/" + totalPages);
         pageInfo.setItemMeta(pageMeta);
         gui.setItem(49, pageInfo);
-
-        // 添加創建新房間按鈕
-        ItemStack createButton = new ItemStack(Material.EMERALD);
-        ItemMeta createMeta = createButton.getItemMeta();
-        createMeta.setDisplayName(lang.getMessage("room.gui.create_new"));
-        createButton.setItemMeta(createMeta);
-        gui.setItem(47, createButton);
 
         player.openInventory(gui);
     }
@@ -274,38 +267,4 @@ public class RoomGUI {
 
 
 
-    /**
-     * 創建新房間
-     * @param roomId 房間ID
-     * @param type 房間類型
-     */
-    public void createNewRoom(String roomId, String type) {
-
-        RoomConfig config =  new RoomConfig(roomId, "new_room", type, "default", "default", 
-        300, 100, 1.0, "0,64,0", 0, 10, new ArrayList<>());
-        roomFile.saveRoom(roomId, config);
-    }
-
-
-
-
-    /**
-     * 刪除房間
-     * @param roomId 房間ID
-     */
-    public void deleteRoom(String roomId) {
-        File file = new File(roomDir, roomId + ".yml");
-        if (file.exists()) {
-            file.delete();
-        }
-        roomFile.removeProvider(roomId);
-    }
-
-    /**
-     * 保存指定房間的配置
-     * @param roomId 房間ID
-     */
-    public void saveRoomConfig(String roomId) {
-        roomFile.saveRoom(roomId, roomFile.getConfig(roomId));
-    }
 } 

@@ -4,6 +4,8 @@ import io.github.cy3902.mcroguelike.MCRogueLike;
 import io.github.cy3902.mcroguelike.abstracts.FileProvider;
 import io.github.cy3902.mcroguelike.abstracts.FileProviderList;
 import io.github.cy3902.mcroguelike.abstracts.AbstractRoom;
+import io.github.cy3902.mcroguelike.abstracts.AbstractRoom.SpawnPoint;
+import io.github.cy3902.mcroguelike.abstracts.AbstractSpawnpoint;
 import io.github.cy3902.mcroguelike.config.RoomConfig;
 import io.github.cy3902.mcroguelike.room.AnnihilationRoom;
 import io.github.cy3902.mcroguelike.room.SurvivalRoom;
@@ -12,10 +14,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 
-import org.bukkit.Location;
+import org.bukkit.configuration.ConfigurationSection;
 
 /**
  * 房間文件管理類
@@ -65,16 +66,28 @@ public class RoomFile extends FileProviderList<FileProvider<RoomConfig>> {
                         config.setPlayerSpawn(yml.getString("player_spawn", "0,64,0"));
                         
                         // 讀取生成點
-                        List<Map<String, String>> spawnpoints = new ArrayList<>();
+                        List<SpawnPoint> spawnpoints = new ArrayList<>();
                         if (yml.contains("spawn_points")) {
-                            List<Map<?, ?>> spawnPointsList = yml.getMapList("spawn_points");
-                            for (Map<?, ?> spawnPoint : spawnPointsList) {
-                                Map<String, String> spawnPointMap = new HashMap<>();
-                                spawnPointMap.put("name", String.valueOf(spawnPoint.get("name")));
-                                spawnPointMap.put("location", String.valueOf(spawnPoint.get("location")));
-                                spawnpoints.add(spawnPointMap);
+                            ConfigurationSection spawnpointSection = yml.getConfigurationSection("spawn_points");
+                            if (spawnpointSection == null) {
+                                return config;
+                            }
+                            for (String key : spawnpointSection.getKeys(false)) {
+                                ConfigurationSection pointSection = spawnpointSection.getConfigurationSection(key);
+                                if (pointSection != null) {
+                                    if ( mcroguelike.getSpawnpointFile().getSpawnpoint(key) == null) {
+                                        continue;
+                                    }
+                                    AbstractSpawnpoint abstractSpawnpoint = mcroguelike.getSpawnpointFile().getSpawnpoint(key);
+                                    SpawnPoint spawnpoint = new SpawnPoint(abstractSpawnpoint, pointSection.getString("location"));
+                                    spawnpoints.add(spawnpoint);
+                                }
                             }
                         }
+
+                        // 讀取敵人生成點
+
+
                         config.setSpawnpoints(spawnpoints);
                         return config;
                     }
@@ -90,8 +103,11 @@ public class RoomFile extends FileProviderList<FileProvider<RoomConfig>> {
                         yml.set("base_score", config.getBaseScore());
                         yml.set("early_completion_multiplier", config.getEarlyCompletionMultiplier());
                         yml.set("player_spawn", config.getPlayerSpawn());
-                        yml.set("spawn_points", config.getSpawnpoints());
 
+                        yml.set("spawn_points", null);
+                        for (SpawnPoint spawnpoint : config.getSpawnpoints()) {
+                            yml.set("spawn_points." + spawnpoint.getSpawnpoint().getName() + ".location", spawnpoint.getLocation());
+                        }
                         try {
                             yml.save(file);
                         } catch (Exception e) {
@@ -110,7 +126,7 @@ public class RoomFile extends FileProviderList<FileProvider<RoomConfig>> {
      * @param roomId 房間ID
      * @return 房間配置
      */
-    public RoomConfig loadRoom(String roomId) {
+    private RoomConfig loadRoom(String roomId) {
         FileProvider<RoomConfig> provider = getProvider(roomId);
         if (provider == null) {
             return null;
@@ -131,7 +147,6 @@ public class RoomFile extends FileProviderList<FileProvider<RoomConfig>> {
      * @param roomId 房間ID
      */
     public void removeProvider(String roomId) {
-        removeProvider(roomId);
         configs.remove(roomId);
         rooms.remove(roomId);
     }
@@ -164,7 +179,7 @@ public class RoomFile extends FileProviderList<FileProvider<RoomConfig>> {
                     roomId,
                     config.getName(),
                     config.getStructure(),
-                    new ArrayList<>(), // 生成點列表將在後續設置
+                    config.getSpawnpoints(),
                     config.getMinFloor(),
                     config.getMaxFloor(),
                     config.getTimeLimit(),

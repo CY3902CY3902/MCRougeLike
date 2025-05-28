@@ -2,7 +2,10 @@ package io.github.cy3902.mcroguelike.manager.room;
 
 import io.github.cy3902.mcroguelike.abstracts.AbstractRoom;
 import io.github.cy3902.mcroguelike.bossbar.bossbar;
+import io.github.cy3902.mcroguelike.manager.game.GameStartManager;
+import io.github.cy3902.mcroguelike.party.Party;
 
+import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -18,7 +21,7 @@ public interface RoomManager {
      * 開始房間
      * @param players 玩家列表
      */
-    void start(List<Player> players, World world);
+    void start(Party party, World world);
 
     /**
      * 暫停房間
@@ -62,6 +65,11 @@ public interface RoomManager {
      * @return 是否暫停
      */
     boolean isPaused();
+
+    /**
+     * 開始前倒數
+     */
+    void StartCountdown();
 
     /**
      * 更新剩餘時間
@@ -116,4 +124,10 @@ public interface RoomManager {
      * @param callback 結束回調接口
      */
     void setOnEndCallback(Runnable callback);
+
+    /**
+     * 設置生成點
+     * @param spawnLocation 生成點
+     */
+    void setBaseLocation(Location baseLocation);
 } 
